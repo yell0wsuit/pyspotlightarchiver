@@ -1,0 +1,3 @@
+https://fd.api.iris.microsoft.com/v3/Delivery/Placement?&pid=338387&fmt=json&ctry=US&lc=en-US&ua=WindowsShellClient%2F9.0.40929.0%20%28Windows%29&bcnt=3&cdm=1
+
+https://fd.api.iris.microsoft.com/v4/api/selection?&placement=88000820&bcnt=4&country=US&locale=en-US&fmt=json
