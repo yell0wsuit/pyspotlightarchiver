@@ -36,6 +36,8 @@ def get_locale_codes():
 
     # Generate and cache
     codes = generate_locale_codes()
+    # Ensure the .cache directory exists
+    os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
     with open(CACHE_FILE, "w", encoding="utf-8") as f:
         json.dump(codes, f, indent=4)
 
