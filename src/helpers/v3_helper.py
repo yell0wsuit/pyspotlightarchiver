@@ -48,6 +48,5 @@ def v3_helper(use_local=False, orientation="landscape", locale="en-us"):
             f"&bcnt=3&cdm=1"
         )
         response = requests.get(url, timeout=10)
-        print(url)
         data = response.json()
     return parse_v3_data(data, orientation=orientation)
