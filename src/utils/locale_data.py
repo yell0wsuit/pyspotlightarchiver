@@ -1,3 +1,5 @@
+"""Module for getting locale data"""
+
 import json
 import os
 import re
@@ -31,7 +33,7 @@ def get_locale_codes():
         try:
             with open(CACHE_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except Exception:
+        except json.JSONDecodeError:
             pass  # Fallback to regenerate if file is corrupted
 
     # Generate and cache

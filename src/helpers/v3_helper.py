@@ -1,11 +1,12 @@
-import json
-import requests
-import os
+"""Module for parsing v3 API data"""
 
-from utils.locale_data import get_country_codes, get_language_codes
+import json
+import os
+import requests
 
 
 def parse_v3_data(data, orientation="landscape"):
+    """Code block to parse v3 API data"""
     results = []
     items = data.get("batchrsp", {}).get("items", [])
     for item in items:
@@ -30,15 +31,23 @@ def parse_v3_data(data, orientation="landscape"):
     return results
 
 
-def v3_helper(use_local=False, orientation="landscape"):
-    country = get_country_codes()
-    language = get_language_codes()
+def v3_helper(use_local=False, orientation="landscape", locale="en-us"):
+    """Code block to get and return v3 API data"""
+    _, country = locale.split("-")
     if use_local:
         local_path = os.path.join(os.path.dirname(__file__), "../tests/v3_api.json")
         with open(local_path, "r", encoding="utf-8") as f:
             data = json.load(f)
     else:
-        url = f"https://fd.api.iris.microsoft.com/v3/Delivery/Placement?&pid=338387&fmt=json&ctry={country}&lc={country}-{language}&ua=WindowsShellClient%2F9.0.40929.0%20%28Windows%29&bcnt=3&cdm=1"
-        response = requests.get(url)
+        url = (
+            f"https://fd.api.iris.microsoft.com/v3/Delivery/Placement?"
+            f"&pid=338387&fmt=json"
+            f"&ctry={country}"
+            f"&lc={locale}"
+            f"&ua=WindowsShellClient%2F9.0.40929.0%20%28Windows%29"
+            f"&bcnt=3&cdm=1"
+        )
+        response = requests.get(url, timeout=10)
+        print(url)
         data = response.json()
     return parse_v3_data(data, orientation=orientation)

@@ -1,11 +1,12 @@
-import json
-import requests
-import os
+"""Module for parsing v4 API data"""
 
-from utils.locale_data import get_country_codes, get_language_codes
+import json
+import os
+import requests
 
 
 def parse_v4_data(data, orientation="landscape"):
+    """Code block to parse v4 API data"""
     results = []
     items = data.get("batchrsp", {}).get("items", [])
     for item in items:
@@ -32,15 +33,22 @@ def parse_v4_data(data, orientation="landscape"):
     return results
 
 
-def v4_helper(use_local=False, orientation="landscape"):
-    country = get_country_codes()
-    language = get_language_codes()
+def v4_helper(use_local=False, orientation="landscape", locale="en-us"):
+    """Code block to get and return v4 API data"""
+    _, country = locale.split("-")
     if use_local:
         local_path = os.path.join(os.path.dirname(__file__), "../tests/v4_api.json")
         with open(local_path, "r", encoding="utf-8") as f:
             data = json.load(f)
     else:
-        url = f"https://fd.api.iris.microsoft.com/v4/api/selection?&placement=88000820&bcnt=4&country={country}&locale={language}&fmt=json"
-        response = requests.get(url)
+        url = (
+            f"https://fd.api.iris.microsoft.com/v4/api/selection?"
+            f"&placement=88000820"
+            f"&bcnt=4"
+            f"&country={country}"
+            f"&locale={locale}"
+            f"&fmt=json"
+        )
+        response = requests.get(url, timeout=10)
         data = response.json()
     return parse_v4_data(data, orientation=orientation)
