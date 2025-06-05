@@ -36,15 +36,20 @@ def list_url(api_ver, locale, orientation):
 
     if locale == "all":
         chunk_size = 10
-        for i in range(0, len(all_locales), chunk_size):
+        for chunk_index, i in enumerate(range(0, len(all_locales), chunk_size)):
             chunk = all_locales[i : i + chunk_size]
             for loc in chunk:
                 print(f"--- {loc} ---")
                 results = get_results(api_ver, loc, orientation)
                 print_results(results, orientation)
+
+            # Calculate delay: group = chunk_index // 10, delay = 10 * (chunk_index + 1)
             if i + chunk_size < len(all_locales):
-                print("Sleeping 10 seconds to avoid rate limiting...")
-                time.sleep(10)
+                delay = 10 * (chunk_index + 1)
+                print(
+                    f"Chunk {chunk_index + 1}. Delaying {delay} seconds to avoid rate limiting..."
+                )
+                time.sleep(delay)
     else:
         if locale not in all_locales_lower:
             print(
