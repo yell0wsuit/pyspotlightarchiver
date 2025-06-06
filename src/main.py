@@ -67,7 +67,7 @@ def main():
         "--single",
         action="store_true",
         help="Download a single image.\n"
-        "If --locale is 'all', a random image is chosen from all available locales.\n"
+        "If --locale is 'all', a random image is chosen from one of the available locales.\n"
         "If --orientation is 'both', both versions will be downloaded.\n"
         "Only one of --single or --multiple can be used.",
     )
