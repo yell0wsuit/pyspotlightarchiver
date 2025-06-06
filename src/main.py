@@ -52,7 +52,7 @@ def main():
     list_parser.add_argument(
         "--verbose",
         action="store_true",
-        help="Verbose output. Default: False",
+        help="Verbose output. Default: false",
     )
 
     # Download subcommand
