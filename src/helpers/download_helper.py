@@ -1,27 +1,7 @@
 """Module for downloading images from API"""
 
 import os
-from requests_cache import CachedSession
-
-CACHE_DIR = os.path.join(os.path.dirname(__file__), ".cache")
-os.makedirs(CACHE_DIR, exist_ok=True)
-CACHE_FILE = os.path.join(CACHE_DIR, "cached_response.sqlite")
-
-
-def strip_content(response):
-    """Remove blob content before caching to avoid inflated cache size"""
-    response._content = b""  # pylint: disable=protected-access
-    response._content_consumed = True  # pylint: disable=protected-access
-    return response
-
-
-session = CachedSession(
-    CACHE_FILE,
-    backend="sqlite",
-    cache_control=True,
-    stale_if_error=True,
-    filter_fn=strip_content,
-)
+import requests
 
 
 def get_save_dir(api_ver):
@@ -47,7 +27,7 @@ def download_image(url, save_path=None, api_ver=None):
     Otherwise, saves to the appropriate folder based on api_ver.
     Returns the image file path.
     """
-    response = session.get(url, timeout=10)
+    response = requests.get(url, timeout=10)
     response.raise_for_status()
     if not save_path:
         # Default save path logic
