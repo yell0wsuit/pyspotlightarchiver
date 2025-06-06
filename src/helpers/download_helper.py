@@ -10,8 +10,8 @@ CACHE_FILE = os.path.join(CACHE_DIR, "cached_response.sqlite")
 
 def strip_content(response):
     """Remove blob content before caching to avoid inflated cache size"""
-    response._content = b""
-    response._content_consumed = True
+    response._content = b""  # pylint: disable=protected-access
+    response._content_consumed = True  # pylint: disable=protected-access
     return response
 
 
