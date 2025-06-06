@@ -5,6 +5,7 @@ import time
 from helpers.v3_helper import v3_helper  # pylint: disable=import-error
 from helpers.v4_helper import v4_helper  # pylint: disable=import-error
 from utils.locale_data import get_locale_codes  # pylint: disable=import-error
+from helpers.retry_helper import retry_operation  # pylint: disable=import-error
 
 
 def print_results(results, orientation, verbose=False):
@@ -46,7 +47,9 @@ def list_url(api_ver, locale, orientation, verbose=False):
             for loc in chunk:
                 if verbose:
                     print(f"--- {loc} ---")
-                results = get_results(api_ver, loc, orientation)
+                results = retry_operation(
+                    api_ver, loc, orientation, operation=get_results
+                )
                 print_results(results, orientation)
 
             # Calculate delay: group = chunk_index // 10, delay = 10 * (chunk_index + 1)

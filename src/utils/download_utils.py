@@ -10,6 +10,7 @@ from helpers.download_helper import (  # pylint: disable=import-error
 from helpers.v3_helper import v3_helper  # pylint: disable=import-error
 from helpers.v4_helper import v4_helper  # pylint: disable=import-error
 from utils.locale_data import get_locale_codes  # pylint: disable=import-error
+from helpers.retry_helper import retry_operation  # pylint: disable=import-error
 
 
 def download_single(api_ver, locale, orientation, verbose=False):
@@ -27,7 +28,9 @@ def download_single(api_ver, locale, orientation, verbose=False):
         for loc in locales_shuffled:
             if verbose:
                 print(f"Trying locale: {loc}")
-            result = download_single(api_ver, loc, orientation, verbose)
+            result = retry_operation(
+                api_ver, loc, orientation, verbose, operation=download_single
+            )
             if result:  # If a download succeeded, stop
                 return True
         if verbose:
