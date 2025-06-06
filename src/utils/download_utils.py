@@ -1,6 +1,7 @@
 """Module for downloading images from API"""
 
 import random
+import time
 
 from helpers.download_helper import (  # pylint: disable=import-error
     download_image,
@@ -45,7 +46,9 @@ def download_single(api_ver, locale, orientation, verbose=False):
     else:
         entries = v4_helper(False, orientation, real_locale)
 
-    entry = random.choice(entries) if entries else None  # Random pick one of the entries
+    entry = (
+        random.choice(entries) if entries else None
+    )  # Random pick one of the entries
 
     if entry:
         if orientation == "both":
@@ -79,16 +82,28 @@ def download_multiple(api_ver, locale, orientation, verbose=False):
 
     all_locales = get_locale_codes()
     all_locales_lower = [l.lower() for l in all_locales]
-    if locale not in all_locales_lower:
-        print(f"Locale '{locale}' is not valid. Use one of: {', '.join(all_locales)}")
-        return
     locale = locale.lower()
 
     if locale == "all":
-        for loc in all_locales:
-            if verbose:
-                print(f"--- {loc} ---")
-            download_multiple(api_ver, loc, orientation, verbose)
+        chunk_size = 15
+        for chunk_index, i in enumerate(range(0, len(all_locales), chunk_size)):
+            chunk = all_locales[i : i + chunk_size]
+            for loc in chunk:
+                if verbose:
+                    print(f"--- {loc} ---")
+                download_multiple(api_ver, loc, orientation, verbose)
+            # Calculate delay: delay = 10 * ((chunk_index + 1) / 2)
+            if i + chunk_size < len(all_locales):
+                delay = 10 * (chunk_index + 1)
+                if verbose:
+                    print(
+                        f"Chunk {chunk_index + 1}. Delaying {delay} seconds to avoid rate limiting..."
+                    )
+                time.sleep(delay)
+        return
+
+    if locale not in all_locales_lower:
+        print(f"Locale '{locale}' is not valid. Use one of: {', '.join(all_locales)}")
         return
 
     if api_ver == 3:
