@@ -116,22 +116,16 @@ def _download_multiple_for_locale(api_ver, locale, orientation, verbose):
         return 0
 
     for i, entry in enumerate(entries):
-        # For each possible image URL in the entry
-        urls = []
-        if orientation == "both":
-            urls = [entry.get("image_url_landscape"), entry.get("image_url_portrait")]
-        else:
-            urls = [entry.get("image_url")]
-
-        for url in urls:
-            if url and get_image_url_from_db(url):
+        url = entry.get("image_url")
+        if url:
+            if get_image_url_from_db(url):
                 print(f"Image already downloaded: {url}")
                 continue
-            if url:
-                path = download_image(url, api_ver=api_ver)
+        paths = download_images(entry, orientation, api_ver=api_ver)
+        for url, path in paths.items():
+            if path:
                 phash = compute_phash(path)
                 add_image_url_to_db(url, phash, path)
-                print(f"Image saved to: {path}")
                 if verbose:
                     print(f"Downloaded entry {i+1}: {url}")
     return len(entries)
@@ -154,14 +148,13 @@ def download_multiple(api_ver, locale, orientation, verbose=False):
             for loc in chunk:
                 if verbose:
                     print(f"--- {loc} ---")
-                result = retry_operation(
+                total_downloaded += retry_operation(
                     api_ver,
                     loc,
                     orientation,
                     verbose,
                     operation=_download_multiple_for_locale,
                 )
-                total_downloaded += result if result is not None else 0
             if i + chunk_size < len(all_locales):
                 delay = 10 * (chunk_index + 1)
                 if verbose:
