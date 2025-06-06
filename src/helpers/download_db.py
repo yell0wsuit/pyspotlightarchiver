@@ -5,7 +5,7 @@ import os
 from contextlib import closing
 from datetime import datetime
 
-DB_PATH = os.path.join(os.path.dirname(__file__), ".cache", "downloaded_images.db")
+DB_PATH = os.path.join(os.path.dirname(__file__), ".cache", "downloaded_images.sqlite")
 
 
 def init_db(db_path=DB_PATH):
