@@ -13,6 +13,15 @@ from helpers.v4_helper import v4_helper  # pylint: disable=import-error
 from utils.locale_data import get_locale_codes  # pylint: disable=import-error
 
 
+def _api_call(api_ver, locale, orientation):
+    """Helper to call the API."""
+    return (
+        v3_helper(False, orientation, locale)
+        if api_ver == 3
+        else v4_helper(False, orientation, locale)
+    )
+
+
 def download_single(api_ver, locale, orientation, verbose=False):
     """
     Download a single image (first entry) from the specified API version.
@@ -44,10 +53,7 @@ def download_single(api_ver, locale, orientation, verbose=False):
     # Use the correctly-cased locale from all_locales
     real_locale = all_locales[all_locales_lower.index(locale)]
 
-    if api_ver == 3:
-        entries = v3_helper(False, orientation, real_locale)
-    else:
-        entries = v4_helper(False, orientation, real_locale)
+    entries = _api_call(api_ver, real_locale, orientation)
 
     entry = (
         random.choice(entries) if entries else None
@@ -67,52 +73,19 @@ def download_single(api_ver, locale, orientation, verbose=False):
                         print(f"Portrait image saved to: {path}")
                     found = True
             return found
-        else:
-            url = entry.get("image_url")
-            if url:
-                path = download_image(url, api_ver=api_ver)
-                print(f"Image saved to: {path}")
-                return True
+        url = entry.get("image_url")
+        if url:
+            path = download_image(url, api_ver=api_ver)
+            print(f"Image saved to: {path}")
+            return True
     else:
         print(f"No entries found to download for locale '{real_locale}'.")
         return False
 
 
-def download_multiple(api_ver, locale, orientation, verbose=False):
-    """
-    Download multiple images (all entries) from the specified API version.
-    """
-
-    all_locales = get_locale_codes()
-    all_locales_lower = [l.lower() for l in all_locales]
-    locale = locale.lower()
-
-    if locale == "all":
-        chunk_size = 15
-        for chunk_index, i in enumerate(range(0, len(all_locales), chunk_size)):
-            chunk = all_locales[i : i + chunk_size]
-            for loc in chunk:
-                if verbose:
-                    print(f"--- {loc} ---")
-                download_multiple(api_ver, loc, orientation, verbose)
-            # Calculate delay: delay = 10 * (chunk_index + 1)
-            if i + chunk_size < len(all_locales):
-                delay = 10 * (chunk_index + 1)
-                if verbose:
-                    print(
-                        f"Chunk {chunk_index + 1}. Delaying {delay} seconds to avoid rate limiting..."
-                    )
-                time.sleep(delay)
-        return
-
-    if locale not in all_locales_lower:
-        print(f"Locale '{locale}' is not valid. Use one of: {', '.join(all_locales)}")
-        return
-
-    if api_ver == 3:
-        entries = v3_helper(False, orientation, locale)
-    else:
-        entries = v4_helper(False, orientation, locale)
+def _download_multiple_for_locale(api_ver, locale, orientation, verbose):
+    """Helper to download all images for a single locale. Returns count."""
+    entries = _api_call(api_ver, locale, orientation)
 
     if not entries:
         if verbose:
@@ -124,3 +97,41 @@ def download_multiple(api_ver, locale, orientation, verbose=False):
         if verbose:
             print(f"Downloaded entry {i+1}: {paths}")
     return len(entries)
+
+
+def download_multiple(api_ver, locale, orientation, verbose=False):
+    """
+    Download multiple images (all entries) from the specified API version.
+    Returns the number of images downloaded.
+    """
+    all_locales = get_locale_codes()
+    all_locales_lower = [l.lower() for l in all_locales]
+    locale = locale.lower()
+
+    if locale == "all":
+        chunk_size = 15
+        total_downloaded = 0
+        for chunk_index, i in enumerate(range(0, len(all_locales), chunk_size)):
+            chunk = all_locales[i : i + chunk_size]
+            for loc in chunk:
+                if verbose:
+                    print(f"--- {loc} ---")
+                total_downloaded += _download_multiple_for_locale(
+                    api_ver, loc, orientation, verbose
+                )
+            if i + chunk_size < len(all_locales):
+                delay = 10 * (chunk_index + 1)
+                if verbose:
+                    print(
+                        f"Chunk {chunk_index + 1}. Delaying {delay} seconds to avoid rate limiting..."
+                    )
+                time.sleep(delay)
+        return total_downloaded
+
+    if locale not in all_locales_lower:
+        print(f"Locale '{locale}' is not valid. Use one of: {', '.join(all_locales)}")
+        return 0
+
+    # Use the correctly-cased locale from all_locales
+    real_locale = all_locales[all_locales_lower.index(locale)]
+    return _download_multiple_for_locale(api_ver, real_locale, orientation, verbose)
