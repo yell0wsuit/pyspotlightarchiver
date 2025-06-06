@@ -37,6 +37,8 @@ def list_url(api_ver, locale, orientation, verbose=False):
 
     total_urls = 0
 
+    print("Listing URLs...")
+
     if locale == "all":
         chunk_size = 15
         for chunk_index, i in enumerate(range(0, len(all_locales), chunk_size)):
