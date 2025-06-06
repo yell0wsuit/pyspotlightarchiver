@@ -7,10 +7,10 @@ from helpers.download_helper import (  # pylint: disable=import-error
     download_image,
     download_images,
 )
+from helpers.retry_helper import retry_operation  # pylint: disable=import-error
 from helpers.v3_helper import v3_helper  # pylint: disable=import-error
 from helpers.v4_helper import v4_helper  # pylint: disable=import-error
 from utils.locale_data import get_locale_codes  # pylint: disable=import-error
-from helpers.retry_helper import retry_operation  # pylint: disable=import-error
 
 
 def download_single(api_ver, locale, orientation, verbose=False):

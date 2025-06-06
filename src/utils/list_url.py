@@ -4,8 +4,8 @@ import time
 
 from helpers.v3_helper import v3_helper  # pylint: disable=import-error
 from helpers.v4_helper import v4_helper  # pylint: disable=import-error
-from utils.locale_data import get_locale_codes  # pylint: disable=import-error
 from helpers.retry_helper import retry_operation  # pylint: disable=import-error
+from utils.locale_data import get_locale_codes  # pylint: disable=import-error
 
 
 def print_results(results, orientation, verbose=False):
