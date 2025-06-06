@@ -7,11 +7,20 @@ CACHE_DIR = os.path.join(os.path.dirname(__file__), ".cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
 CACHE_FILE = os.path.join(CACHE_DIR, "cached_response.sqlite")
 
+
+def strip_content(response):
+    """Remove blob content before caching to avoid inflated cache size"""
+    response._content = b""
+    response._content_consumed = True
+    return response
+
+
 session = CachedSession(
     CACHE_FILE,
     backend="sqlite",
     cache_control=True,
     stale_if_error=True,
+    filter_fn=strip_content,
 )
 
 
