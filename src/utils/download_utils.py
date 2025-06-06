@@ -92,7 +92,7 @@ def download_multiple(api_ver, locale, orientation, verbose=False):
                 if verbose:
                     print(f"--- {loc} ---")
                 download_multiple(api_ver, loc, orientation, verbose)
-            # Calculate delay: delay = 10 * ((chunk_index + 1) / 2)
+            # Calculate delay: delay = 10 * (chunk_index + 1)
             if i + chunk_size < len(all_locales):
                 delay = 10 * (chunk_index + 1)
                 if verbose:
