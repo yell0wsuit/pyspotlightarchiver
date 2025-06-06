@@ -61,7 +61,7 @@ def download_images(entry, orientation="landscape", save_dir=None, api_ver=None)
                     save_path = os.path.join(save_dir, filename)
                 else:
                     save_path = None
-                results[key] = download_image(url, save_path, api_ver)
+                results[url] = download_image(url, save_path, api_ver)
     else:
         url = entry.get("image_url")
         if url:
@@ -71,6 +71,6 @@ def download_images(entry, orientation="landscape", save_dir=None, api_ver=None)
                 save_path = os.path.join(save_dir, filename)
             else:
                 save_path = None
-            results["image"] = download_image(url, save_path, api_ver)
-            print(f"Image saved to: {results['image']}")
+            results[url] = download_image(url, save_path, api_ver)
+            print(f"Image saved to: {results[url]}")
     return results
