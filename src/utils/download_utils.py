@@ -22,6 +22,19 @@ def _api_call(api_ver, locale, orientation):
     )
 
 
+def _download_both_orientations(entry, api_ver):
+    found = False
+    for key in ["image_url_landscape", "image_url_portrait"]:
+        url = entry.get(key)
+        if url:
+            path = download_image(url, api_ver=api_ver)
+            print(
+                f"{'Landscape' if key == 'image_url_landscape' else 'Portrait'} image saved to: {path}"
+            )
+            found = True
+    return found
+
+
 def download_single(api_ver, locale, orientation, verbose=False):
     """
     Download a single image (first entry) from the specified API version.
@@ -61,17 +74,7 @@ def download_single(api_ver, locale, orientation, verbose=False):
 
     if entry:
         if orientation == "both":
-            found = False
-            # Download both landscape and portrait from the same entry
-            for key in ["image_url_landscape", "image_url_portrait"]:
-                url = entry.get(key)
-                if url:
-                    path = download_image(url, api_ver=api_ver)
-                    if key == "image_url_landscape":
-                        print(f"Landscape image saved to: {path}")
-                    else:
-                        print(f"Portrait image saved to: {path}")
-                    found = True
+            found = _download_both_orientations(entry, api_ver)
             return found
         url = entry.get("image_url")
         if url:
@@ -116,8 +119,12 @@ def download_multiple(api_ver, locale, orientation, verbose=False):
             for loc in chunk:
                 if verbose:
                     print(f"--- {loc} ---")
-                total_downloaded += _download_multiple_for_locale(
-                    api_ver, loc, orientation, verbose
+                total_downloaded += retry_operation(
+                    api_ver,
+                    loc,
+                    orientation,
+                    verbose,
+                    operation=_download_multiple_for_locale,
                 )
             if i + chunk_size < len(all_locales):
                 delay = 10 * (chunk_index + 1)
