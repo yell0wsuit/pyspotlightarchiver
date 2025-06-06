@@ -10,7 +10,16 @@ from helpers.download_helper import (  # pylint: disable=import-error
 from helpers.retry_helper import retry_operation  # pylint: disable=import-error
 from helpers.v3_helper import v3_helper  # pylint: disable=import-error
 from helpers.v4_helper import v4_helper  # pylint: disable=import-error
+from helpers.download_db import (  # pylint: disable=import-error
+    init_db,
+    get_image_url_from_db,
+    add_image_url_to_db,
+)
+from helpers.imagehash_helper import compute_phash  # pylint: disable=import-error
 from utils.locale_data import get_locale_codes  # pylint: disable=import-error
+
+
+init_db()
 
 
 def _api_call(api_ver, locale, orientation):
@@ -27,10 +36,15 @@ def _download_both_orientations(entry, api_ver):
     for key in ["image_url_landscape", "image_url_portrait"]:
         url = entry.get(key)
         if url:
+            if get_image_url_from_db(url):
+                print(f"Image already downloaded: {url}")
+                continue
             path = download_image(url, api_ver=api_ver)
             print(
                 f"{'Landscape' if key == 'image_url_landscape' else 'Portrait'} image saved to: {path}"
             )
+            phash = compute_phash(path)
+            add_image_url_to_db(url, phash, path)
             found = True
     return found
 
@@ -78,8 +92,14 @@ def download_single(api_ver, locale, orientation, verbose=False):
             return found
         url = entry.get("image_url")
         if url:
+            if get_image_url_from_db(url):
+                print(f"Image already downloaded: {url}")
+                return True
             path = download_image(url, api_ver=api_ver)
             print(f"Image saved to: {path}")
+
+            phash = compute_phash(path)
+            add_image_url_to_db(url, phash, path)
             return True
     else:
         print(f"No entries found to download for locale '{real_locale}'.")
@@ -96,9 +116,24 @@ def _download_multiple_for_locale(api_ver, locale, orientation, verbose):
         return 0
 
     for i, entry in enumerate(entries):
-        paths = download_images(entry, orientation, api_ver=api_ver)
-        if verbose:
-            print(f"Downloaded entry {i+1}: {paths}")
+        # For each possible image URL in the entry
+        urls = []
+        if orientation == "both":
+            urls = [entry.get("image_url_landscape"), entry.get("image_url_portrait")]
+        else:
+            urls = [entry.get("image_url")]
+
+        for url in urls:
+            if url and get_image_url_from_db(url):
+                print(f"Image already downloaded: {url}")
+                continue
+            if url:
+                path = download_image(url, api_ver=api_ver)
+                phash = compute_phash(path)
+                add_image_url_to_db(url, phash, path)
+                print(f"Image saved to: {path}")
+                if verbose:
+                    print(f"Downloaded entry {i+1}: {url}")
     return len(entries)
 
 
@@ -119,13 +154,14 @@ def download_multiple(api_ver, locale, orientation, verbose=False):
             for loc in chunk:
                 if verbose:
                     print(f"--- {loc} ---")
-                total_downloaded += retry_operation(
+                result = retry_operation(
                     api_ver,
                     loc,
                     orientation,
                     verbose,
                     operation=_download_multiple_for_locale,
                 )
+                total_downloaded += result if result is not None else 0
             if i + chunk_size < len(all_locales):
                 delay = 10 * (chunk_index + 1)
                 if verbose:
