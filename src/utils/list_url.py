@@ -7,9 +7,10 @@ from helpers.v4_helper import v4_helper  # pylint: disable=import-error
 from utils.locale_data import get_locale_codes  # pylint: disable=import-error
 
 
-def print_results(results, orientation):
+def print_results(results, orientation, verbose=False):
     """Helper to print URLs from results based on orientation"""
-    print(f"Found {len(results)} URLs")
+    if verbose:
+        print(f"Found {len(results)} URLs")
     for entry in results:
         if orientation == "both":
             print(
@@ -27,28 +28,32 @@ def get_results(api_ver, locale, orientation):
     return v4_helper(locale=locale, orientation=orientation)
 
 
-def list_url(api_ver, locale, orientation):
+def list_url(api_ver, locale, orientation, verbose=False):
     """List URLs for a given API version, locale, and orientation"""
     all_locales = get_locale_codes()
     all_locales_lower = [l.lower() for l in all_locales]
     locale = locale.lower()
     orientation = orientation.lower()
 
+    total_urls = 0
+
     if locale == "all":
-        chunk_size = 10
+        chunk_size = 15
         for chunk_index, i in enumerate(range(0, len(all_locales), chunk_size)):
             chunk = all_locales[i : i + chunk_size]
             for loc in chunk:
-                print(f"--- {loc} ---")
+                if verbose:
+                    print(f"--- {loc} ---")
                 results = get_results(api_ver, loc, orientation)
                 print_results(results, orientation)
 
             # Calculate delay: group = chunk_index // 10, delay = 10 * (chunk_index + 1)
             if i + chunk_size < len(all_locales):
-                delay = 10 * (chunk_index + 1)
-                print(
-                    f"Chunk {chunk_index + 1}. Delaying {delay} seconds to avoid rate limiting..."
-                )
+                delay = 10 * ((chunk_index + 1) / 2)
+                if verbose:
+                    print(
+                        f"Chunk {chunk_index + 1}. Delaying {delay} seconds to avoid rate limiting..."
+                    )
                 time.sleep(delay)
     else:
         if locale not in all_locales_lower:
@@ -60,3 +65,6 @@ def list_url(api_ver, locale, orientation):
         real_locale = all_locales[all_locales_lower.index(locale)]
         results = get_results(api_ver, real_locale, orientation)
         print_results(results, orientation)
+        total_urls = len(results)
+
+    print(f"Done. Found {total_urls} URLs.")
