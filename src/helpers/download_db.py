@@ -25,8 +25,8 @@ def init_db(db_path=DB_PATH):
         conn.commit()
 
 
-def add_image(url, phash, local_path, db_path=DB_PATH):
-    """Add a new image record to the database."""
+def add_image_url_to_db(url, phash, local_path, db_path=DB_PATH):
+    """Add a new image URL record to the database."""
     with sqlite3.connect(db_path) as conn:
         with closing(conn.cursor()) as cursor:
             cursor.execute(
@@ -39,7 +39,7 @@ def add_image(url, phash, local_path, db_path=DB_PATH):
         conn.commit()
 
 
-def get_image_by_url(url, db_path=DB_PATH):
+def get_image_url_from_db(url, db_path=DB_PATH):
     """Retrieve an image record by URL."""
     with sqlite3.connect(db_path) as conn:
         with closing(conn.cursor()) as cursor:
