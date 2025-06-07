@@ -48,55 +48,60 @@ def _download_both_orientations(entry, api_ver):
     return found
 
 
-def download_single(api_ver, locale, orientation, verbose=False):
-    """
-    Download a single image (first entry) from the specified API version.
-    If locale == "all", randomly pick a locale and keep trying until a valid image is found.
-    """
+def _download_for_locale(api_ver, locale, orientation):
     all_locales = get_locale_codes()
-    locale = locale.lower()
-
-    if locale == "all":
-        locales_shuffled = all_locales[:]
-        random.shuffle(locales_shuffled)
-        for loc in locales_shuffled:
-            if verbose:
-                print(f"Trying locale: {loc}")
-            if retry_operation(
-                api_ver, loc, orientation, verbose, operation=download_single
-            ):
-                return True
-        if verbose:
-            print("No valid images found in any locale.")
-        return False
-
     all_locales_lower = [l.lower() for l in all_locales]
     if locale not in all_locales_lower:
         print(f"Locale '{locale}' is not valid. Use one of: {', '.join(all_locales)}")
         return False
 
-    # Use the correctly-cased locale from all_locales
     real_locale = all_locales[all_locales_lower.index(locale)]
     entries = _api_call(api_ver, real_locale, orientation)
-    entry = (
-        random.choice(entries) if entries else None
-    )  # Random pick one of the entries
+    entry = random.choice(entries) if entries else None
 
-    if entry:
-        if orientation == "both":
-            return _download_both_orientations(entry, api_ver)
-        url = entry.get("image_url")
-        if url:
-            if get_image_url_from_db(url):
-                print(f"Image already downloaded: {url}")
-                return True
-            path = download_image(url, api_ver=api_ver)
-            print(f"Image saved to: {path}")
-            add_image_url_to_db(url, compute_phash(path), path)
-            return True
-    else:
+    if not entry:
         print(f"No entries found to download for locale '{real_locale}'.")
         return False
+
+    if orientation == "both":
+        return _download_both_orientations(entry, api_ver)
+    url = entry.get("image_url")
+    if url:
+        if get_image_url_from_db(url):
+            print(f"Image already downloaded: {url}")
+            return True
+        path = download_image(url, api_ver=api_ver)
+        print(f"Image saved to: {path}")
+        add_image_url_to_db(url, compute_phash(path), path)
+        return True
+    return False
+
+
+def _download_for_all_locales(api_ver, orientation, verbose):
+    all_locales = get_locale_codes()
+    locales_shuffled = all_locales[:]
+    random.shuffle(locales_shuffled)
+    for loc in locales_shuffled:
+        if verbose:
+            print(f"Trying locale: {loc}")
+        if retry_operation(
+            api_ver, loc, orientation, verbose, operation=download_single
+        ):
+            return True
+    if verbose:
+        print("No valid images found in any locale.")
+    return False
+
+
+def download_single(api_ver, locale, orientation, verbose=False):
+    """
+    Download a single image (first entry) from the specified API version.
+    If locale == "all", randomly pick a locale and keep trying until a valid image is found.
+    """
+    locale = locale.lower()
+    if locale == "all":
+        return _download_for_all_locales(api_ver, orientation, verbose)
+    return _download_for_locale(api_ver, locale, orientation)
 
 
 def _download_multiple_for_locale(api_ver, locale, orientation, verbose):
