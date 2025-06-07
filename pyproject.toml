@@ -1,0 +1,19 @@
+[project]
+name = "pyspotlightarchiver_yell0wsuit"
+version = "1.0.0"
+authors = [
+  { name="yell0wsuit },
+]
+description = "Fetch and download Windows Spotlight images. Lightweight and easy to use."
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "GPL"
+license-files = ["LICEN[CS]E*"]
+
+[project.urls]
+Homepage = "https://github.com/yell0wsuit/pyspotlightarchiver"
+Issues = "https://github.com/yell0wsuit/pyspotlightarchiver/issues"
