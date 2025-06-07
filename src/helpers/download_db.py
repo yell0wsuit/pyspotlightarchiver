@@ -52,3 +52,24 @@ def get_image_url_from_db(url, db_path=DB_PATH):
                 (url,),
             )
             return cursor.fetchone()
+
+
+def get_image_path_from_db(local_path, db_path=DB_PATH):
+    """Retrieve an image path by local path."""
+    with sqlite3.connect(db_path) as conn:
+        with closing(conn.cursor()) as cursor:
+            cursor.execute(
+                """
+                SELECT local_path
+                FROM downloaded_images
+                WHERE local_path = ?
+                """,
+                (local_path,),
+            )
+            return cursor.fetchone()
+
+
+def is_image_path_valid(local_path, db_path=DB_PATH):
+    """Check if the image path is in the DB and the file exists on disk."""
+    record = get_image_path_from_db(local_path, db_path)
+    return record is not None and os.path.exists(local_path)

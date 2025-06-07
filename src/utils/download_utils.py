@@ -14,6 +14,7 @@ from helpers.download_db import (  # pylint: disable=import-error
     init_db,
     get_image_url_from_db,
     add_image_url_to_db,
+    is_image_path_valid,
 )
 from helpers.imagehash_helper import compute_phash  # pylint: disable=import-error
 from utils.locale_data import get_locale_codes  # pylint: disable=import-error
@@ -36,9 +37,12 @@ def _download_both_orientations(entry, api_ver):
     for key in ["image_url_landscape", "image_url_portrait"]:
         url = entry.get(key)
         if url:
-            if get_image_url_from_db(url):
-                print(f"Image already downloaded: {url}")
-                continue
+            record = get_image_url_from_db(url)
+            if record:
+                local_path = record[2]  # 3rd element is local_path
+                if is_image_path_valid(local_path):
+                    print(f"Image already downloaded: {url}")
+                    continue
             path = download_image(url, api_ver=api_ver)
             print(
                 f"{'Landscape' if key == 'image_url_landscape' else 'Portrait'} image saved to: {path}"
@@ -67,9 +71,12 @@ def _download_for_locale(api_ver, locale, orientation):
         return _download_both_orientations(entry, api_ver)
     url = entry.get("image_url")
     if url:
-        if get_image_url_from_db(url):
-            print(f"Image already downloaded: {url}")
-            return True
+        record = get_image_url_from_db(url)
+        if record:
+            local_path = record[2]
+            if is_image_path_valid(local_path):
+                print(f"Image already downloaded: {url}")
+                return True
         path = download_image(url, api_ver=api_ver)
         print(f"Image saved to: {path}")
         add_image_url_to_db(url, compute_phash(path), path)
@@ -116,9 +123,12 @@ def _download_multiple_for_locale(api_ver, locale, orientation, verbose):
     for i, entry in enumerate(entries):
         url = entry.get("image_url")
         if url:
-            if get_image_url_from_db(url):
-                print(f"Image already downloaded: {url}")
-                continue
+            record = get_image_url_from_db(url)
+            if record:
+                local_path = record[2]
+                if is_image_path_valid(local_path):
+                    print(f"Image already downloaded: {url}")
+                    continue
         paths = download_images(entry, orientation, api_ver=api_ver)
         for url, path in paths.items():
             if path:
