@@ -2,7 +2,7 @@
 name = "pyspotlightarchiver_yell0wsuit"
 version = "1.0.0"
 authors = [
-  { name="yell0wsuit },
+  { name="yell0wsuit" },
 ]
 description = "Fetch and download Windows Spotlight images. Lightweight and easy to use."
 readme = "README.md"
