@@ -52,13 +52,13 @@ def list_url(api_ver, locale, orientation, verbose=False):
                 )
                 print_results(results, orientation)
 
-            # Calculate delay: group = chunk_index // 10, delay = 10 * (chunk_index + 1)
+            # Calculate delay: group = chunk_index // 10, delay = 5 * (chunk_index + 1)
             if i + chunk_size < len(all_locales):
-                delay = 10 * ((chunk_index + 1) / 2)
-                if verbose:
-                    print(
-                        f"Chunk {chunk_index + 1}. Delaying {delay} seconds to avoid rate limiting..."
-                    )
+                max_delay = 180  # maximum delay in seconds
+                delay = min(5 * (chunk_index + 1), max_delay)
+                print(
+                    f"Chunk {chunk_index + 1}. Delaying {delay} seconds to avoid rate limiting..."
+                )
                 time.sleep(delay)
     else:
         if locale not in all_locales_lower:

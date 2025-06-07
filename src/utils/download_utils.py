@@ -163,11 +163,11 @@ def download_multiple(api_ver, locale, orientation, verbose=False):
                     operation=_download_multiple_for_locale,
                 )
             if i + chunk_size < len(all_locales):
-                delay = 10 * (chunk_index + 1)
-                if verbose:
-                    print(
-                        f"Chunk {chunk_index + 1}. Delaying {delay} seconds to avoid rate limiting..."
-                    )
+                max_delay = 180  # maximum delay in seconds
+                delay = min(5 * (chunk_index + 1), max_delay)
+                print(
+                    f"Chunk {chunk_index + 1}. Delaying {delay} seconds to avoid rate limiting..."
+                )
                 time.sleep(delay)
         return total_downloaded
 

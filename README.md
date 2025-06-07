@@ -66,16 +66,16 @@ python ./src/main.py [options]
 
 - When you use the `--locale all` option, the tool automatically throttles API requests to help prevent rate limiting. Locales are processed in chunks of 15. After each chunk, the tool waits for a delay calculated as:
 
-  `delay = 10 * current chunk number`
+  `delay = 5 * current chunk number`
 
   For example:
 
-  - After the first 15 locales, it waits 10 seconds.
-  - After the next 15, it waits 20 seconds.
-  - After the third chunk, it waits 30 seconds.
+  - After the first 15 locales, it waits 5 seconds.
+  - After the next 15, it waits 10 seconds.
+  - After the third chunk, it waits 15 seconds.
   - ...and so on.
 
-  This approach helps avoid sending too many requests in a short period and reduces the risk of hitting API rate limits.
+  The maximum delay is 180 seconds to avoid waiting too long while balancing the rate limit. This approach helps avoid sending too many requests in a short period of time and reduces the risk of hitting API rate limits.
 
   Use the `--verbose` option to see the delay in action.
 
