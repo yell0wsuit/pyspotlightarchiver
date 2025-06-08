@@ -37,10 +37,10 @@ def report_duplicates(save_dir=None):
 
     os.makedirs(os.path.dirname(report_path), exist_ok=True)
     with open(report_path, "w", encoding="utf-8") as f:
-        f.write("# Potential duplicates:\n\n")
+        f.write("# Potential duplicates\n\n")
         for phash, items in duplicates.items():
-            f.write(f"## phash {phash}\n\n")
+            f.write(f"## phash `{phash}`\n\n")
             for url, path in items:
-                f.write(f"- {url}\n  Saved to {path}\n")
+                f.write(f"- {url}  \n  Saved to `{path}`\n")
             f.write("\n")
     return True
