@@ -113,7 +113,7 @@ def main():
     download_parser.add_argument(
         "--embed-exif",
         action="store_true",
-        help="Embed EXIF metadata in the images. Default: true",
+        help="Embed EXIF metadata in the images. Default: false",
     )
     download_parser.add_argument(
         "--exiftool-path",
