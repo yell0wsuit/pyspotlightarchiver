@@ -61,6 +61,9 @@ python ./src/main.py [options]
 | `--api-ver` | API version to use. |
 | `--locale` | Locale code to use. Format: `en-us`. Use `all` to include all available locales. |
 | `--orientation` | Image orientation to filter. Format: `landscape`, `portrait`, `both`. |
+| `--save-dir` | <strong>Only for `download` command.</strong><br>Directory to save the images. Default: `downloaded_spotlight` in the current working directory. |
+| `--embed-exif` | <strong>Only for `download` command.</strong><br>Embed EXIF metadata in the images using [exiftool](https://exiftool.org/). Default: false. |
+| `--exiftool-path` | <strong>Only for `download` command.</strong><br>Path to the exiftool executable. Default: using the PATH environment variable. |
 | `--verbose` | Verbose output. |
 
 ## Notes
@@ -81,7 +84,7 @@ python ./src/main.py [options]
 - After downloading images, the tool will save images URLs and their phashes to the database.
   - The database is stored in the `.cache/downloaded_images.sqlite` file.
   - It is used to avoid downloading the same image multiple times.
-  - It is also used to check for potential duplicates, and logs in markdown format.
+  - It is also used to check for potential duplicates, and logs in the `phash_duplicates_report.md` file.
 
 ## License
 
