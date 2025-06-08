@@ -31,7 +31,7 @@ def get_cache_file(api_ver):
     return os.path.join(os.getcwd(), ".cache", f"locale_cache_{api_ver}.json")
 
 
-def get_locale_codes(api_ver="v3"):
+def get_locale_codes(api_ver=3):
     """Load locale codes from cache if available."""
     cache_file = get_cache_file(api_ver)
     if os.path.exists(cache_file):

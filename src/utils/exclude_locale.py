@@ -217,13 +217,13 @@ data_v4 = [
 ]
 
 
-def is_excluded(locale, version="v3"):
+def is_excluded(locale, version=3):
     """
     Check if a locale is excluded for a given version.
-    version: 'mutual', 'v3', or 'v4'
+    version: '3', '4' (no quotes)
     """
-    if version == "v3":
+    if version == 3:
         return locale in data_mutual or locale in data_v3
-    if version == "v4":
+    if version == 4:
         return locale in data_mutual or locale in data_v4
-    raise ValueError("version must be 'mutual', 'v3', or 'v4'")
+    raise ValueError("version must be '3' or '4' (no quotes)")
