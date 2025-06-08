@@ -160,6 +160,7 @@ def download_single(
     """
     locale = locale.lower()
     if locale == "all":
+        embed_exif = False
         return _download_for_all_locales(
             api_ver,
             orientation,
@@ -242,6 +243,7 @@ def download_multiple(
     locale = locale.lower()
 
     if locale == "all":
+        embed_exif = False
         chunk_size = 15
         total_downloaded = 0
         for chunk_index, i in enumerate(range(0, len(all_locales), chunk_size)):

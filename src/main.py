@@ -123,6 +123,13 @@ def main():
 
     args = parser.parse_args()
 
+    if args.command == "download" and args.locale.lower() == "all":
+        if args.embed_exif:
+            print(
+                "Warning: When --locale is 'all', --embed-exif is automatically set to false."
+            )
+            args.embed_exif = False
+
     if args.command == "list-url":
         list_url(args.api_ver, args.locale, args.orientation, args.verbose)
     elif args.command == "download":
