@@ -209,7 +209,7 @@ def _download_multiple_for_locale(
             for url, path in paths.items():
                 if path:
                     add_image_url_to_db(url, compute_phash(path), path, save_dir)
-                    if embed_exif:
+                    if embed_exif and locale != "all":
                         set_exif_metadata_exiftool(
                             path,
                             title=entry.get("title") or entry.get("picture_title"),
@@ -259,6 +259,7 @@ def download_multiple(
                     operation=_download_multiple_for_locale,
                     save_dir=save_dir,
                     exiftool_path=exiftool_path,
+                    embed_exif=embed_exif,
                 )
             if i + chunk_size < len(all_locales):
                 max_delay = 180  # maximum delay in seconds
