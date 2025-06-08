@@ -53,7 +53,6 @@ def process_all_locales(api_ver, all_locales, orientation, verbose):
 
 def list_url(api_ver, locale, orientation, verbose=False):
     """List URLs for a given API version, locale, and orientation"""
-    api_ver = "v3" if api_ver == 3 else "v4"
     all_locales = get_locale_codes(api_ver)
     locale = locale.lower()
     orientation = orientation.lower()
