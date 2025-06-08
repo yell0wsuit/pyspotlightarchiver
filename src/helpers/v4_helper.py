@@ -5,11 +5,11 @@ import os
 import requests
 
 
-def parse_v4_data(data, orientation="landscape"):
+def parse_v4_data(data, orientation="landscape", verbose=False):
     """Code block to parse v4 API data"""
     results = []
     items = data.get("batchrsp", {}).get("items", [])
-    for item in items:
+    for i, item in enumerate(items):
         # Each item['item'] is a JSON string
         nested = json.loads(item["item"])
         ad = nested.get("ad", {})
@@ -30,10 +30,12 @@ def parse_v4_data(data, orientation="landscape"):
         entry["caption_title"] = ad.get("title")
         entry["caption_description"] = ad.get("description")
         results.append(entry)
+        if verbose:
+            print(f"Picture metadata {i+1}: {entry}")
     return results
 
 
-def v4_helper(use_local=False, orientation="landscape", locale="en-us"):
+def v4_helper(use_local=False, orientation="landscape", locale="en-us", verbose=False):
     """Code block to get and return v4 API data"""
     _, country = locale.split("-")
     if use_local:
@@ -51,4 +53,4 @@ def v4_helper(use_local=False, orientation="landscape", locale="en-us"):
         )
         response = requests.get(url, timeout=10)
         data = response.json()
-    return parse_v4_data(data, orientation=orientation)
+    return parse_v4_data(data, orientation=orientation, verbose=verbose)

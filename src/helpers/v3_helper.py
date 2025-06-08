@@ -5,11 +5,11 @@ import os
 import requests
 
 
-def parse_v3_data(data, orientation="landscape"):
+def parse_v3_data(data, orientation="landscape", verbose=False):
     """Code block to parse v3 API data"""
     results = []
     items = data.get("batchrsp", {}).get("items", [])
-    for item in items:
+    for i, item in enumerate(items):
         # Each item['item'] is a JSON string
         nested = json.loads(item["item"])
         ad = nested.get("ad", {})
@@ -28,10 +28,12 @@ def parse_v3_data(data, orientation="landscape"):
         entry["title"] = ad.get("title_text", {}).get("tx")
         entry["copyright"] = ad.get("copyright_text", {}).get("tx")
         results.append(entry)
+        if verbose:
+            print(f"Picture metadata {i+1}: {entry}")
     return results
 
 
-def v3_helper(use_local=False, orientation="landscape", locale="en-us"):
+def v3_helper(use_local=False, orientation="landscape", locale="en-us", verbose=False):
     """Code block to get and return v3 API data"""
     _, country = locale.split("-")
     if use_local:
@@ -49,4 +51,4 @@ def v3_helper(use_local=False, orientation="landscape", locale="en-us"):
         )
         response = requests.get(url, timeout=10)
         data = response.json()
-    return parse_v3_data(data, orientation=orientation)
+    return parse_v3_data(data, orientation=orientation, verbose=verbose)
