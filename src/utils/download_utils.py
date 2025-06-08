@@ -155,7 +155,6 @@ def download_multiple(api_ver, locale, orientation, verbose=False, save_dir=None
     Returns the number of images downloaded.
     """
     all_locales = get_locale_codes()
-    all_locales_lower = [l.lower() for l in all_locales]
     locale = locale.lower()
 
     if locale == "all":
@@ -187,12 +186,12 @@ def download_multiple(api_ver, locale, orientation, verbose=False, save_dir=None
             )
         return total_downloaded
 
-    if locale not in all_locales_lower:
+    if locale not in [l.lower() for l in all_locales]:
         print(f"Locale '{locale}' is not valid. Use one of: {', '.join(all_locales)}")
         return 0
 
     # Use the correctly-cased locale from all_locales
-    real_locale = all_locales[all_locales_lower.index(locale)]
+    real_locale = all_locales[[l.lower() for l in all_locales].index(locale)]
     return _download_multiple_for_locale(
         api_ver, real_locale, orientation, verbose, save_dir
     )
