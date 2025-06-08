@@ -4,7 +4,7 @@ import argparse
 from utils.list_url import list_url  # pylint: disable=import-error
 from utils.download_utils import (  # pylint: disable=import-error
     download_single,
-    download_multiple,
+    download_multiple_until_exhausted,
 )
 from helpers.download_db import init_db  # pylint: disable=import-error
 
@@ -146,7 +146,7 @@ def main():
             )
         elif args.multiple:
             init_db(args.save_dir)
-            download_multiple(
+            download_multiple_until_exhausted(
                 args.api_ver,
                 args.locale,
                 args.orientation,

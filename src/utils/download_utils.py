@@ -193,7 +193,10 @@ def _download_multiple_for_locale(
     if not entries:
         if verbose:
             print("No entries found to download.")
-        return 0
+        return 0, 0
+
+    downloaded = 0
+    already_downloaded = 0
 
     for i, entry in enumerate(entries):
         url = entry.get("image_url")
@@ -203,6 +206,7 @@ def _download_multiple_for_locale(
                 local_path = record[2]
                 if is_image_path_valid(local_path):
                     print(f"Image already downloaded: {url}")
+                    already_downloaded += 1
                     continue
         paths = download_images(entry, orientation, api_ver=api_ver, save_dir=save_dir)
         if paths:
@@ -222,7 +226,8 @@ def _download_multiple_for_locale(
                         print(f"EXIF metadata embedded in {path}")
                     if verbose:
                         print(f"Downloaded entry {i+1}: {url}")
-    return len(entries)
+                    downloaded += 1
+    return downloaded, already_downloaded
 
 
 def download_multiple(
@@ -246,12 +251,13 @@ def download_multiple(
         embed_exif = False
         chunk_size = 15
         total_downloaded = 0
+        total_already_downloaded = 0
         for chunk_index, i in enumerate(range(0, len(all_locales), chunk_size)):
             chunk = all_locales[i : i + chunk_size]
             for loc in chunk:
                 if verbose:
                     print(f"--- {loc} ---")
-                total_downloaded += retry_operation(
+                downloaded, already_downloaded = retry_operation(
                     api_ver,
                     loc,
                     orientation,
@@ -261,6 +267,8 @@ def download_multiple(
                     exiftool_path=exiftool_path,
                     embed_exif=embed_exif,
                 )
+                total_downloaded += downloaded
+                total_already_downloaded += already_downloaded
             if i + chunk_size < len(all_locales):
                 max_delay = 180  # maximum delay in seconds
                 delay = min(5 * (chunk_index + 1), max_delay)
@@ -272,14 +280,77 @@ def download_multiple(
             print(
                 f"Potential duplicates found. Reports are written to {get_report_path(save_dir)}"
             )
-        return total_downloaded
+        return {
+            "downloaded": total_downloaded,
+            "already_downloaded": total_already_downloaded,
+        }
 
     if locale not in [l.lower() for l in all_locales]:
         print(f"Locale '{locale}' is not valid. Use one of: {', '.join(all_locales)}")
-        return 0
+        return {"downloaded": 0, "already_downloaded": 0}
 
     # Use the correctly-cased locale from all_locales
     real_locale = all_locales[[l.lower() for l in all_locales].index(locale)]
-    return _download_multiple_for_locale(
+    downloaded, already_downloaded = _download_multiple_for_locale(
         api_ver, real_locale, orientation, verbose, save_dir, embed_exif, exiftool_path
     )
+    return {"downloaded": downloaded, "already_downloaded": already_downloaded}
+
+
+def download_multiple_until_exhausted(
+    api_ver,
+    locale,
+    orientation,
+    verbose=False,
+    save_dir=None,
+    embed_exif=True,
+    exiftool_path=None,
+    max_consecutive=5,
+    max_calls=50,
+):
+    """
+    Repeatedly call download_multiple 5 times until all images are already downloaded
+    for max_consecutive times in a row. Delays between every 5 calls to avoid rate limiting.
+    """
+    consecutive = 0
+    call_count = 0
+    delays = [5, 10, 15, 20, 30, 45, 60, 90, 120, 180]  # seconds
+
+    while consecutive < max_consecutive and call_count < max_calls:
+        for _ in range(5):
+            if consecutive >= max_consecutive or call_count >= max_calls:
+                break
+            status = download_multiple(
+                api_ver,
+                locale,
+                orientation,
+                verbose=verbose,
+                save_dir=save_dir,
+                embed_exif=embed_exif,
+                exiftool_path=exiftool_path,
+            )
+            downloaded = status.get("downloaded", 0)
+            already_downloaded = status.get("already_downloaded", 0)
+
+            if downloaded == 0 and already_downloaded > 0:
+                consecutive += 1
+                print(
+                    f"All images already downloaded ({consecutive}/{max_consecutive})"
+                )
+            else:
+                consecutive = 0
+
+            call_count += 1
+
+        if consecutive < max_consecutive:
+            delay = (
+                delays[min(call_count // 5 - 1, len(delays) - 1)]
+                if call_count // 5 <= len(delays)
+                else 180
+            )
+            print(
+                f"Delaying {delay} seconds before next call to avoid rate limiting..."
+            )
+            time.sleep(delay)
+
+    print("Download finished (exhausted or max calls reached).")
