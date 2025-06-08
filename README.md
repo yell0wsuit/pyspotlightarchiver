@@ -11,22 +11,23 @@ Inspired by [Spotlight-Downloader](https://github.com/ORelio/Spotlight-Downloade
 
 ## Requirements
 
-- Python 3.10 or higher. Install from [official website](https://www.python.org/downloads/).
+- (Tested on) Python 3.10 or higher. Install from [official website](https://www.python.org/downloads/).
+- [exiftool](https://exiftool.org/) to embed EXIF metadata in the images.
 
 ## Installation
 
 1. **Clone the repository:**
 
-   ```
+   ```bash
    git clone https://github.com/yell0wsuit/pyspotlightarchiver.git
    cd pyspotlightarchiver
    ```
 
-You can also [download the repository as a zip file](https://github.com/yell0wsuit/pyspotlightarchiver/archive/refs/heads/main.zip) and extract it.
+   You can also [download the repository as a zip file](https://github.com/yell0wsuit/pyspotlightarchiver/archive/refs/heads/main.zip) and extract it.
 
 2. **(Optional) Create a virtual environment:**
 
-   ```
+   ```bash
    python -m venv venv
    .\venv\Scripts\activate  # On Windows
    source venv/bin/activate  # On Linux/Mac
@@ -34,7 +35,7 @@ You can also [download the repository as a zip file](https://github.com/yell0wsu
 
 3. **Install dependencies:**
 
-   ```
+   ```bash
    pip install -r requirements.txt
    ```
 
@@ -42,9 +43,15 @@ You can also [download the repository as a zip file](https://github.com/yell0wsu
 
 Run the tool from the command line:
 
-```
+```bash
 python ./src/main.py [options]
 ```
+
+- For listing available Spotlight pictures URLs, use the `list-url` command.
+- For downloading as many Spotlight pictures as possible to your computer, use the `download` command.
+  - 4K images: `download --api-ver 4 --multiple --embed-exif`
+  - 1080p images: `download --api-ver 3 --multiple --embed-exif`
+  - You can add `--locale all` to download images from all available locales.
 
 ### Options
 
@@ -79,12 +86,12 @@ python ./src/main.py [options]
   - After the third chunk, it waits 15 seconds.
   - ...and so on.
 
-  The maximum delay is 180 seconds to avoid waiting too long while balancing the rate limit. This approach helps avoid sending too many requests in a short period of time and reduces the risk of hitting API rate limits.
+  The delay is capped at 180 seconds to prevent excessive waiting while balancing the rate limit. This strategy minimizes the number of requests sent in a short timeframe, thereby lowering the chance of exceeding API rate limits.
 
-- After downloading images, the tool will save images URLs and their phashes to the database.
-  - The database is stored in the `.cache/downloaded_images.sqlite` file.
-  - It is used to avoid downloading the same image multiple times.
-  - It is also used to check for potential duplicates, and logs in the `phash_duplicates_report.md` file.
+- Once images are downloaded, the tool records their URLs and perceptual hashes in a SQLite database.
+  - This database is located at `.cache/downloaded_images.sqlite` in the current working directory.
+  - It helps prevent the re-downloading of identical images.
+  - Additionally, it identifies potential duplicates and logs them in the `phash_duplicates_report.md` file in the current working directory.
 
 ## License
 
