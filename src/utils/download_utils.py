@@ -140,11 +140,12 @@ def _download_multiple_for_locale(api_ver, locale, orientation, verbose, save_di
                     print(f"Image already downloaded: {url}")
                     continue
         paths = download_images(entry, orientation, api_ver=api_ver, save_dir=save_dir)
-        for url, path in paths.items():
-            if path:
-                add_image_url_to_db(url, compute_phash(path), path, save_dir)
-                if verbose:
-                    print(f"Downloaded entry {i+1}: {url}")
+        if paths:
+            for url, path in paths.items():
+                if path:
+                    add_image_url_to_db(url, compute_phash(path), path, save_dir)
+                    if verbose:
+                        print(f"Downloaded entry {i+1}: {url}")
     return len(entries)
 
 
