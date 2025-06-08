@@ -306,7 +306,7 @@ def download_multiple_until_exhausted(
     embed_exif=True,
     exiftool_path=None,
     max_consecutive=5,
-    max_calls=50,
+    max_calls=100,
 ):
     """
     Repeatedly call download_multiple 5 times until all images are already downloaded
@@ -335,7 +335,7 @@ def download_multiple_until_exhausted(
             if downloaded == 0 and already_downloaded > 0:
                 consecutive += 1
                 print(
-                    f"All images already downloaded ({consecutive}/{max_consecutive})"
+                    f"Number of consecutive calls with no new downloads: {consecutive}/{max_consecutive}"
                 )
             else:
                 consecutive = 0
@@ -354,3 +354,8 @@ def download_multiple_until_exhausted(
             time.sleep(delay)
 
     print("Download finished (exhausted or max calls reached).")
+
+    if report_duplicates(save_dir):
+        print(
+            f"Potential duplicates found. Reports are written to {get_report_path(save_dir)}"
+        )
