@@ -5,8 +5,7 @@ import os
 import re
 from babel import localedata
 from babel.core import Locale
-
-CACHE_FILE = os.path.join(os.path.dirname(__file__), ".cache", "locale_cache.json")
+from .exclude_locale import is_excluded
 
 
 def generate_locale_codes():
@@ -27,23 +26,30 @@ def generate_locale_codes():
     return sorted(locale_codes)
 
 
-def get_locale_codes():
+def get_cache_file(api_ver):
+    """Get the cache file for a given API version."""
+    return os.path.join(os.getcwd(), ".cache", f"locale_cache_{api_ver}.json")
+
+
+def get_locale_codes(api_ver="v3"):
     """Load locale codes from cache if available."""
-    if os.path.exists(CACHE_FILE):
+    cache_file = get_cache_file(api_ver)
+    if os.path.exists(cache_file):
         try:
-            with open(CACHE_FILE, "r", encoding="utf-8") as f:
+            with open(cache_file, "r", encoding="utf-8") as f:
                 return json.load(f)
         except json.JSONDecodeError:
             pass  # Fallback to regenerate if file is corrupted
 
     # Generate and cache
     codes = generate_locale_codes()
+    clean_codes = [code for code in codes if not is_excluded(code, version=api_ver)]
     # Ensure the .cache directory exists
-    os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
-    with open(CACHE_FILE, "w", encoding="utf-8") as f:
-        json.dump(codes, f, indent=4)
+    os.makedirs(os.path.dirname(cache_file), exist_ok=True)
+    with open(cache_file, "w", encoding="utf-8") as f:
+        json.dump(clean_codes, f, indent=4)
 
-    return codes
+    return clean_codes
 
 
 def get_language_codes():

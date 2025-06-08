@@ -53,7 +53,8 @@ def _download_both_orientations(entry, api_ver, save_dir=None):
 
 
 def _download_for_locale(api_ver, locale, orientation, save_dir=None):
-    all_locales = get_locale_codes()
+    api_ver = "v3" if api_ver == 3 else "v4"
+    all_locales = get_locale_codes(api_ver)
     all_locales_lower = [l.lower() for l in all_locales]
     if locale not in all_locales_lower:
         print(f"Locale '{locale}' is not valid. Use one of: {', '.join(all_locales)}")
@@ -85,7 +86,8 @@ def _download_for_locale(api_ver, locale, orientation, save_dir=None):
 
 
 def _download_for_all_locales(api_ver, orientation, verbose, save_dir=None):
-    all_locales = get_locale_codes()
+    api_ver = "v3" if api_ver == 3 else "v4"
+    all_locales = get_locale_codes(api_ver)
     locales_shuffled = all_locales[:]
     random.shuffle(locales_shuffled)
     for loc in locales_shuffled:
@@ -154,7 +156,8 @@ def download_multiple(api_ver, locale, orientation, verbose=False, save_dir=None
     Download multiple images (all entries) from the specified API version.
     Returns the number of images downloaded.
     """
-    all_locales = get_locale_codes()
+    api_ver = "v3" if api_ver == 3 else "v4"
+    all_locales = get_locale_codes(api_ver)
     locale = locale.lower()
 
     if locale == "all":
