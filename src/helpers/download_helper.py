@@ -28,6 +28,13 @@ def get_save_dir(api_ver, save_dir=None):
     return save_dir
 
 
+def ensure_jpg_extension(filename):
+    """Ensure the filename ends with .jpg"""
+    if not filename.lower().endswith(".jpg"):
+        filename += ".jpg"
+    return filename
+
+
 def download_image(url, save_dir=None, api_ver=None):
     """
     Download an image from the given URL using a cached session.
@@ -39,7 +46,7 @@ def download_image(url, save_dir=None, api_ver=None):
     response.raise_for_status()
     save_dir = get_save_dir(api_ver, save_dir)
     filename = os.path.basename(url.split("?")[0])
-    save_file = os.path.join(save_dir, filename)
+    save_file = os.path.join(save_dir, ensure_jpg_extension(filename))
     with open(save_file, "wb") as f:
         f.write(response.content)
     return save_file
