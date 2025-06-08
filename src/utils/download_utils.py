@@ -21,18 +21,23 @@ from helpers.report_duplicates_helper import (  # pylint: disable=import-error
 )
 from helpers.imagehash_helper import compute_phash  # pylint: disable=import-error
 from utils.locale_data import get_locale_codes  # pylint: disable=import-error
+from utils.exif_utils import (  # pylint: disable=import-error
+    set_exif_metadata_exiftool,
+)
 
 
-def _api_call(api_ver, locale, orientation):
+def _api_call(api_ver, locale, orientation, verbose=False):
     """Helper to call the API."""
     return (
-        v3_helper(False, orientation, locale)
+        v3_helper(False, orientation, locale, verbose=verbose)
         if api_ver == 3
-        else v4_helper(False, orientation, locale)
+        else v4_helper(False, orientation, locale, verbose=verbose)
     )
 
 
-def _download_both_orientations(entry, api_ver, save_dir=None):
+def _download_both_orientations(
+    entry, api_ver, save_dir=None, embed_exif=True, exiftool_path=None, verbose=False
+):
     found = False
     for key in ["image_url_landscape", "image_url_portrait"]:
         url = entry.get(key)
@@ -48,11 +53,30 @@ def _download_both_orientations(entry, api_ver, save_dir=None):
                 f"{'Landscape' if key == 'image_url_landscape' else 'Portrait'} image saved to: {path}"
             )
             add_image_url_to_db(url, compute_phash(path), path, save_dir)
+            if embed_exif:
+                set_exif_metadata_exiftool(
+                    path,
+                    title=entry.get("title") or entry.get("picture_title"),
+                    copyright_text=entry.get("copyright"),
+                    caption_title=entry.get("caption_title"),
+                    caption_description=entry.get("caption_description"),
+                    exiftool_path=exiftool_path,
+                    verbose=verbose,
+                )
+                print(f"EXIF metadata embedded in {path}")
             found = True
     return found
 
 
-def _download_for_locale(api_ver, locale, orientation, save_dir=None):
+def _download_for_locale(
+    api_ver,
+    locale,
+    orientation,
+    verbose,
+    save_dir=None,
+    embed_exif=True,
+    exiftool_path=None,
+):
     all_locales = get_locale_codes(api_ver)
     all_locales_lower = [l.lower() for l in all_locales]
     if locale not in all_locales_lower:
@@ -60,7 +84,7 @@ def _download_for_locale(api_ver, locale, orientation, save_dir=None):
         return False
 
     real_locale = all_locales[all_locales_lower.index(locale)]
-    entries = _api_call(api_ver, real_locale, orientation)
+    entries = _api_call(api_ver, real_locale, orientation, verbose)
     entry = random.choice(entries) if entries else None
 
     if not entry:
@@ -68,7 +92,9 @@ def _download_for_locale(api_ver, locale, orientation, save_dir=None):
         return False
 
     if orientation == "both":
-        return _download_both_orientations(entry, api_ver, save_dir)
+        return _download_both_orientations(
+            entry, api_ver, save_dir, embed_exif, exiftool_path
+        )
     url = entry.get("image_url")
     if url:
         record = get_image_url_from_db(url, save_dir)
@@ -80,11 +106,24 @@ def _download_for_locale(api_ver, locale, orientation, save_dir=None):
         path = download_image(url, api_ver=api_ver, save_dir=save_dir)
         print(f"Image saved to: {path}")
         add_image_url_to_db(url, compute_phash(path), path, save_dir)
+        if embed_exif:
+            set_exif_metadata_exiftool(
+                path,
+                title=entry.get("title") or entry.get("picture_title"),
+                copyright_text=entry.get("copyright"),
+                caption_title=entry.get("caption_title"),
+                caption_description=entry.get("caption_description"),
+                exiftool_path=exiftool_path,
+                verbose=verbose,
+            )
+            print(f"EXIF metadata embedded in {path}")
         return True
     return False
 
 
-def _download_for_all_locales(api_ver, orientation, verbose, save_dir=None):
+def _download_for_all_locales(
+    api_ver, orientation, verbose=False, save_dir=None, exiftool_path=None
+):
     all_locales = get_locale_codes(api_ver)
     locales_shuffled = all_locales[:]
     random.shuffle(locales_shuffled)
@@ -98,6 +137,7 @@ def _download_for_all_locales(api_ver, orientation, verbose, save_dir=None):
             verbose,
             operation=download_single,
             save_dir=save_dir,
+            exiftool_path=exiftool_path,
         ):
             return True
     if verbose:
@@ -105,15 +145,31 @@ def _download_for_all_locales(api_ver, orientation, verbose, save_dir=None):
     return False
 
 
-def download_single(api_ver, locale, orientation, verbose=False, save_dir=None):
+def download_single(
+    api_ver,
+    locale,
+    orientation,
+    verbose=False,
+    save_dir=None,
+    embed_exif=True,
+    exiftool_path=None,
+):
     """
     Download a single image (first entry) from the specified API version.
     If locale == "all", randomly pick a locale and keep trying until a valid image is found.
     """
     locale = locale.lower()
     if locale == "all":
-        return _download_for_all_locales(api_ver, orientation, verbose, save_dir)
-    result = _download_for_locale(api_ver, locale, orientation, save_dir)
+        return _download_for_all_locales(
+            api_ver,
+            orientation,
+            verbose=verbose,
+            save_dir=save_dir,
+            exiftool_path=exiftool_path,
+        )
+    result = _download_for_locale(
+        api_ver, locale, orientation, verbose, save_dir, embed_exif, exiftool_path
+    )
     if report_duplicates(save_dir):
         print(
             f"Potential duplicates found. Reports are written to {get_report_path(save_dir)}"
@@ -121,9 +177,17 @@ def download_single(api_ver, locale, orientation, verbose=False, save_dir=None):
     return result
 
 
-def _download_multiple_for_locale(api_ver, locale, orientation, verbose, save_dir=None):
+def _download_multiple_for_locale(
+    api_ver,
+    locale,
+    orientation,
+    verbose=False,
+    save_dir=None,
+    embed_exif=True,
+    exiftool_path=None,
+):
     """Helper to download all images for a single locale. Returns count."""
-    entries = _api_call(api_ver, locale, orientation)
+    entries = _api_call(api_ver, locale, orientation, verbose)
 
     if not entries:
         if verbose:
@@ -144,12 +208,31 @@ def _download_multiple_for_locale(api_ver, locale, orientation, verbose, save_di
             for url, path in paths.items():
                 if path:
                     add_image_url_to_db(url, compute_phash(path), path, save_dir)
+                    if embed_exif:
+                        set_exif_metadata_exiftool(
+                            path,
+                            title=entry.get("title") or entry.get("picture_title"),
+                            copyright_text=entry.get("copyright"),
+                            caption_title=entry.get("caption_title"),
+                            caption_description=entry.get("caption_description"),
+                            exiftool_path=exiftool_path,
+                            verbose=verbose,
+                        )
+                        print(f"EXIF metadata embedded in {path}")
                     if verbose:
                         print(f"Downloaded entry {i+1}: {url}")
     return len(entries)
 
 
-def download_multiple(api_ver, locale, orientation, verbose=False, save_dir=None):
+def download_multiple(
+    api_ver,
+    locale,
+    orientation,
+    verbose=False,
+    save_dir=None,
+    embed_exif=True,
+    exiftool_path=None,
+):
     """
     Download multiple images (all entries) from the specified API version.
     Returns the number of images downloaded.
@@ -173,6 +256,7 @@ def download_multiple(api_ver, locale, orientation, verbose=False, save_dir=None
                     verbose,
                     operation=_download_multiple_for_locale,
                     save_dir=save_dir,
+                    exiftool_path=exiftool_path,
                 )
             if i + chunk_size < len(all_locales):
                 max_delay = 180  # maximum delay in seconds
@@ -194,5 +278,5 @@ def download_multiple(api_ver, locale, orientation, verbose=False, save_dir=None
     # Use the correctly-cased locale from all_locales
     real_locale = all_locales[[l.lower() for l in all_locales].index(locale)]
     return _download_multiple_for_locale(
-        api_ver, real_locale, orientation, verbose, save_dir
+        api_ver, real_locale, orientation, verbose, save_dir, embed_exif, exiftool_path
     )
