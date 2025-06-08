@@ -5,11 +5,24 @@ import os
 from contextlib import closing
 from datetime import datetime
 
-DB_PATH = os.path.join(os.path.dirname(__file__), ".cache", "downloaded_images.sqlite")
+DB_FILENAME = "downloaded_images.sqlite"
 
 
-def init_db(db_path=DB_PATH):
+def get_db_path(save_dir=None):
+    """
+    Returns the path to the database file, using the provided save_dir or the default.
+    """
+    if save_dir:
+        cache_dir = os.path.join(save_dir, ".cache")
+    else:
+        cache_dir = os.path.join(os.getcwd(), "downloaded_spotlight", ".cache")
+    os.makedirs(cache_dir, exist_ok=True)
+    return os.path.join(cache_dir, DB_FILENAME)
+
+
+def init_db(save_dir=None):
     """Initialize the SQLite database and create the table if it doesn't exist."""
+    db_path = get_db_path(save_dir)
     with sqlite3.connect(db_path) as conn:
         with closing(conn.cursor()) as cursor:
             cursor.execute(
@@ -25,8 +38,9 @@ def init_db(db_path=DB_PATH):
         conn.commit()
 
 
-def add_image_url_to_db(url, phash, local_path, db_path=DB_PATH):
+def add_image_url_to_db(url, phash, local_path, save_dir=None):
     """Add a new image URL record to the database."""
+    db_path = get_db_path(save_dir)
     with sqlite3.connect(db_path) as conn:
         with closing(conn.cursor()) as cursor:
             cursor.execute(
@@ -39,8 +53,9 @@ def add_image_url_to_db(url, phash, local_path, db_path=DB_PATH):
         conn.commit()
 
 
-def get_image_url_from_db(url, db_path=DB_PATH):
+def get_image_url_from_db(url, save_dir=None):
     """Retrieve an image record by URL."""
+    db_path = get_db_path(save_dir)
     with sqlite3.connect(db_path) as conn:
         with closing(conn.cursor()) as cursor:
             cursor.execute(
@@ -54,8 +69,9 @@ def get_image_url_from_db(url, db_path=DB_PATH):
             return cursor.fetchone()
 
 
-def get_image_path_from_db(local_path, db_path=DB_PATH):
+def get_image_path_from_db(local_path, save_dir=None):
     """Retrieve an image path by local path."""
+    db_path = get_db_path(save_dir)
     with sqlite3.connect(db_path) as conn:
         with closing(conn.cursor()) as cursor:
             cursor.execute(
@@ -69,7 +85,23 @@ def get_image_path_from_db(local_path, db_path=DB_PATH):
             return cursor.fetchone()
 
 
-def is_image_path_valid(local_path, db_path=DB_PATH):
+def is_image_path_valid(local_path, save_dir=None):
     """Check if the image path is in the DB and the file exists on disk."""
-    record = get_image_path_from_db(local_path, db_path)
+    record = get_image_path_from_db(local_path, save_dir)
     return record is not None and os.path.exists(local_path)
+
+
+def get_all_images(save_dir=None):
+    """
+    Returns a list of (url, phash, local_path) for all images in the DB.
+    """
+    db_path = get_db_path(save_dir)
+    with sqlite3.connect(db_path) as conn:
+        with closing(conn.cursor()) as cursor:
+            cursor.execute(
+                """
+                SELECT url, phash, local_path
+                FROM downloaded_images
+                """
+            )
+            return cursor.fetchall()

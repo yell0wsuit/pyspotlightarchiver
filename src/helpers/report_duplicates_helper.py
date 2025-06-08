@@ -1,0 +1,46 @@
+"""Helper to report duplicates in the DB."""
+
+import os
+from helpers.download_db import (  # pylint: disable=import-error
+    get_all_images,
+)
+
+
+def get_report_path(save_dir=None):
+    """
+    Returns the path for the duplicates report, using the provided save_dir or the default.
+    """
+    if save_dir:
+        return os.path.join(save_dir, "phash_duplicates_report.md")
+    return os.path.join(
+        os.getcwd(), "downloaded_spotlight", "phash_duplicates_report.md"
+    )
+
+
+def report_duplicates(save_dir=None):
+    """
+    Scans the DB for duplicate pHashes and writes a Markdown report.
+    Returns True if duplicates found, else False.
+    """
+    report_path = get_report_path(save_dir)
+    images = get_all_images()
+    phash_map = {}
+    for url, phash, path in images:
+        if phash not in phash_map:
+            phash_map[phash] = []
+        phash_map[phash].append((url, path))
+
+    duplicates = {phash: items for phash, items in phash_map.items() if len(items) > 1}
+
+    if not duplicates:
+        return False
+
+    os.makedirs(os.path.dirname(report_path), exist_ok=True)
+    with open(report_path, "w", encoding="utf-8") as f:
+        f.write("# Potential duplicates:\n\n")
+        for phash, items in duplicates.items():
+            f.write(f"## phash {phash}\n\n")
+            for url, path in items:
+                f.write(f"- {url}\n  Saved to {path}\n")
+            f.write("\n")
+    return True

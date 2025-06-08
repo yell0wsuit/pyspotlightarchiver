@@ -6,6 +6,7 @@ from utils.download_utils import (  # pylint: disable=import-error
     download_single,
     download_multiple,
 )
+from helpers.download_db import init_db  # pylint: disable=import-error
 
 
 def main():
@@ -104,6 +105,11 @@ def main():
         action="store_true",
         help="Verbose output. Default: false",
     )
+    download_parser.add_argument(
+        "--save-dir",
+        type=str,
+        help="Directory to save the images. Default: 'downloaded_spotlight' in the current working directory",
+    )
 
     args = parser.parse_args()
 
@@ -111,9 +117,15 @@ def main():
         list_url(args.api_ver, args.locale, args.orientation, args.verbose)
     elif args.command == "download":
         if args.single:
-            download_single(args.api_ver, args.locale, args.orientation, args.verbose)
+            init_db(args.save_dir)
+            download_single(
+                args.api_ver, args.locale, args.orientation, args.verbose, args.save_dir
+            )
         elif args.multiple:
-            download_multiple(args.api_ver, args.locale, args.orientation, args.verbose)
+            init_db(args.save_dir)
+            download_multiple(
+                args.api_ver, args.locale, args.orientation, args.verbose, args.save_dir
+            )
     else:
         parser.print_help()
         print("\nAvailable Commands:\n")

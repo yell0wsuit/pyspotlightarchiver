@@ -4,23 +4,31 @@ import os
 import requests
 
 
-def get_save_dir(api_ver):
+def get_save_dir(api_ver, save_dir=None):
     """
     Returns the appropriate save directory based on API version.
     Ensures the directory exists.
     """
-    base_dir = os.path.join(os.getcwd(), "downloaded_spotlight")
+    base_dir = (
+        save_dir if save_dir else os.path.join(os.getcwd(), "downloaded_spotlight")
+    )
     if api_ver == 3:
-        save_dir = os.path.join(base_dir, "1080p")
+        save_dir = (
+            os.path.join(base_dir, "1080p")
+            if save_dir
+            else os.path.join(base_dir, "1080p")
+        )
     elif api_ver == 4:
-        save_dir = os.path.join(base_dir, "4K")
+        save_dir = (
+            os.path.join(base_dir, "4K") if save_dir else os.path.join(base_dir, "4K")
+        )
     else:
         save_dir = base_dir
     os.makedirs(save_dir, exist_ok=True)
     return save_dir
 
 
-def download_image(url, save_path=None, api_ver=None):
+def download_image(url, save_dir=None, api_ver=None):
     """
     Download an image from the given URL using a cached session.
     If save_path is provided, saves the image to disk and returns the path.
@@ -29,17 +37,12 @@ def download_image(url, save_path=None, api_ver=None):
     """
     response = requests.get(url, timeout=10)
     response.raise_for_status()
-    if not save_path:
-        # Default save path logic
-        save_dir = get_save_dir(api_ver)
-        filename = os.path.basename(url.split("?")[0])
-        save_path = os.path.join(save_dir, filename)
-    else:
-        # Ensure the directory exists
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    with open(save_path, "wb") as f:
+    save_dir = get_save_dir(api_ver, save_dir)
+    filename = os.path.basename(url.split("?")[0])
+    save_file = os.path.join(save_dir, filename)
+    with open(save_file, "wb") as f:
         f.write(response.content)
-    return save_path
+    return save_file
 
 
 def download_images(entry, orientation="landscape", save_dir=None, api_ver=None):
@@ -55,22 +58,10 @@ def download_images(entry, orientation="landscape", save_dir=None, api_ver=None)
         for key in ["image_url_landscape", "image_url_portrait"]:
             url = entry.get(key)
             if url:
-                filename = os.path.basename(url.split("?")[0])
-                if save_dir:
-                    os.makedirs(save_dir, exist_ok=True)
-                    save_path = os.path.join(save_dir, filename)
-                else:
-                    save_path = None
-                results[url] = download_image(url, save_path, api_ver)
+                results[url] = download_image(url, save_dir, api_ver)
     else:
         url = entry.get("image_url")
         if url:
-            filename = os.path.basename(url.split("?")[0])
-            if save_dir:
-                os.makedirs(save_dir, exist_ok=True)
-                save_path = os.path.join(save_dir, filename)
-            else:
-                save_path = None
-            results[url] = download_image(url, save_path, api_ver)
+            results[url] = download_image(url, save_dir, api_ver)
             print(f"Image saved to: {results[url]}")
     return results

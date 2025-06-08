@@ -57,6 +57,7 @@ python ./src/main.py [options]
 |------------|-------------|
 | `--single` | <strong>Only for `download` command.</strong><br>Download a single image.<br>If `--locale` is `all`, a random image is chosen from one of the available locales.<br>If `--orientation` is `both`, both versions are downloaded. |
 | `--multiple` | <strong>Only for `download` command.</strong><br>Download multiple images.<br>If `--locale` is `all`, every image from every locale is downloaded.<br>If `--orientation` is `both`, both versions are downloaded. |
+| `--save-dir` | <strong>Only for `download` command.</strong><br>Directory to save the images. Default: `downloaded_spotlight` in the current working directory. |
 | `--api-ver` | API version to use. |
 | `--locale` | Locale code to use. Format: `en-us`. Use `all` to include all available locales. |
 | `--orientation` | Image orientation to filter. Format: `landscape`, `portrait`, `both`. |
@@ -77,7 +78,10 @@ python ./src/main.py [options]
 
   The maximum delay is 180 seconds to avoid waiting too long while balancing the rate limit. This approach helps avoid sending too many requests in a short period of time and reduces the risk of hitting API rate limits.
 
-  Use the `--verbose` option to see the delay in action.
+- After downloading images, the tool will save images URLs and their phashes to the database.
+  - The database is stored in the `.cache/downloaded_images.sqlite` file.
+  - It is used to avoid downloading the same image multiple times.
+  - It is also used to check for potential duplicates, and logs in markdown format.
 
 ## License
 
