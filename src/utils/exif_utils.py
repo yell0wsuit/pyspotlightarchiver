@@ -86,8 +86,12 @@ def set_exif_metadata_exiftool(
 
     try:
         result = subprocess.run(args, capture_output=True, text=True, check=True)
-        print(f"EXIF metadata written to {image_path} using exiftool.")
+        if verbose:
+            print(
+                f"EXIF metadata written to {image_path} using exiftool. Output: {result.stdout}"
+            )
     except subprocess.CalledProcessError as e:
-        print(f"ExifTool error: {e.stderr}")
+        if verbose:
+            print(f"ExifTool error: {e.stderr}")
     except Exception as e:
         print(f"Error running exiftool: {e}")
