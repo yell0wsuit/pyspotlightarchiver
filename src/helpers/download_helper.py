@@ -34,7 +34,6 @@ def ensure_jpg_extension(filename):
         filename += ".jpg"
     return filename
 
-
 def download_image(url, save_dir=None, api_ver=None):
     """
     Download an image from the given URL using a cached session.

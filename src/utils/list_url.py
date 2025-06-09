@@ -6,6 +6,7 @@ from helpers.v3_helper import v3_helper  # pylint: disable=import-error
 from helpers.v4_helper import v4_helper  # pylint: disable=import-error
 from helpers.retry_helper import retry_operation  # pylint: disable=import-error
 from utils.locale_data import get_locale_codes  # pylint: disable=import-error
+from utils.countdown import inline_countdown  # pylint: disable=import-error
 
 
 def print_results(results, orientation, verbose=False):
@@ -45,10 +46,7 @@ def process_all_locales(api_ver, all_locales, orientation, verbose):
         if i + chunk_size < len(all_locales):
             max_delay = 180  # maximum delay in seconds
             delay = min(5 * (chunk_index + 1), max_delay)
-            print(
-                f"Chunk {chunk_index + 1}. Delaying {delay} seconds to avoid rate limiting..."
-            )
-            time.sleep(delay)
+            inline_countdown(delay)
 
 
 def list_url(api_ver, locale, orientation, verbose=False):

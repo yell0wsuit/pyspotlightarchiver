@@ -1,5 +1,6 @@
 """Module for downloading images from API"""
 
+import os
 import random
 import time
 
@@ -13,7 +14,7 @@ from helpers.v4_helper import v4_helper  # pylint: disable=import-error
 from helpers.download_db import (  # pylint: disable=import-error
     get_image_url_from_db,
     add_image_url_to_db,
-    is_image_path_valid,
+    is_image_filename_valid,
 )
 from helpers.report_duplicates_helper import (  # pylint: disable=import-error
     report_duplicates,
@@ -24,6 +25,7 @@ from utils.locale_data import get_locale_codes  # pylint: disable=import-error
 from utils.exif_utils import (  # pylint: disable=import-error
     set_exif_metadata_exiftool,
 )
+from utils.countdown import inline_countdown  # pylint: disable=import-error
 
 CONSECUTIVE_MAX = 50
 CALLS_MAX = 200
@@ -47,15 +49,16 @@ def _download_both_orientations(
         if url:
             record = get_image_url_from_db(url, save_dir)
             if record:
-                local_path = record[2]  # 3rd element is local_path
-                if is_image_path_valid(local_path):
+                filename = record[2]  # 3rd element is filename
+                if is_image_filename_valid(filename, save_dir, api_ver):
                     print(f"Image already downloaded: {url}")
                     continue
             path = download_image(url, api_ver=api_ver, save_dir=save_dir)
             print(
                 f"{'Landscape' if key == 'image_url_landscape' else 'Portrait'} image saved to: {path}"
             )
-            add_image_url_to_db(url, compute_phash(path), path, save_dir)
+            filename = os.path.basename(path)
+            add_image_url_to_db(url, compute_phash(path), filename, save_dir=save_dir)
             if embed_exif:
                 set_exif_metadata_exiftool(
                     path,
@@ -102,13 +105,14 @@ def _download_for_locale(
     if url:
         record = get_image_url_from_db(url, save_dir)
         if record:
-            local_path = record[2]
-            if is_image_path_valid(local_path):
+            filename = record[2]
+            if is_image_filename_valid(filename, save_dir, api_ver):
                 print(f"Image already downloaded: {url}")
                 return True
         path = download_image(url, api_ver=api_ver, save_dir=save_dir)
         print(f"Image saved to: {path}")
-        add_image_url_to_db(url, compute_phash(path), path, save_dir)
+        filename = os.path.basename(path)
+        add_image_url_to_db(url, compute_phash(path), filename, save_dir=save_dir)
         if embed_exif:
             set_exif_metadata_exiftool(
                 path,
@@ -206,8 +210,8 @@ def _download_multiple_for_locale(
         if url:
             record = get_image_url_from_db(url, save_dir)
             if record:
-                local_path = record[2]
-                if is_image_path_valid(local_path):
+                filename = record[2]
+                if is_image_filename_valid(filename, save_dir, api_ver):
                     print(f"Image already downloaded: {url}")
                     already_downloaded += 1
                     continue
@@ -215,7 +219,10 @@ def _download_multiple_for_locale(
         if paths:
             for url, path in paths.items():
                 if path:
-                    add_image_url_to_db(url, compute_phash(path), path, save_dir)
+                    filename = os.path.basename(path)
+                    add_image_url_to_db(
+                        url, compute_phash(path), filename, save_dir=save_dir
+                    )
                     if embed_exif and locale != "all":
                         set_exif_metadata_exiftool(
                             path,
@@ -275,10 +282,8 @@ def download_multiple(
             if i + chunk_size < len(all_locales):
                 max_delay = 180  # maximum delay in seconds
                 delay = min(5 * (chunk_index + 1), max_delay)
-                print(
-                    f"Chunk {chunk_index + 1}. Delaying {delay} seconds to avoid rate limiting..."
-                )
-                time.sleep(delay)
+                inline_countdown(delay)
+
         if report_duplicates(save_dir):
             print(
                 f"Potential duplicates found. Reports are written to {get_report_path(save_dir)}"
@@ -353,10 +358,7 @@ def download_multiple_until_exhausted(
                     if call_count // 10 <= len(delays)
                     else 180
                 )
-                print(
-                    f"Delaying {delay} seconds before next call to avoid rate limiting..."
-                )
-                time.sleep(delay)
+                inline_countdown(delay)
 
     print("Download finished (exhausted or max calls reached).")
 

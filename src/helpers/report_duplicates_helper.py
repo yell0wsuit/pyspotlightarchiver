@@ -6,7 +6,7 @@ from helpers.download_db import (  # pylint: disable=import-error
 )
 
 
-def get_report_path(save_dir=None):
+def get_report_path(save_dir):
     """
     Returns the path for the duplicates report, using the provided save_dir or the default.
     """
@@ -17,13 +17,13 @@ def get_report_path(save_dir=None):
     )
 
 
-def report_duplicates(save_dir=None):
+def report_duplicates(save_dir):
     """
     Scans the DB for duplicate pHashes and writes a Markdown report.
     Returns True if duplicates found, else False.
     """
     report_path = get_report_path(save_dir)
-    images = get_all_images()
+    images = get_all_images(save_dir)
     phash_map = {}
     for url, phash, path in images:
         if phash not in phash_map:
