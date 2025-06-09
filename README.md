@@ -20,6 +20,14 @@ Inspired by [Spotlight-Downloader](https://github.com/ORelio/Spotlight-Downloade
 
 ## ⚖️ Installation
 
+### From PyPI (recommended)
+
+```bash
+pip install pyspotlightarchiver
+```
+
+### From source (for development)
+
 1. **Clone the repository:**
 
    ```bash
