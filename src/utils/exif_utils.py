@@ -4,6 +4,7 @@ import subprocess
 import shutil
 import os
 import platform
+import tempfile
 
 
 def _exiftool_exists(exiftool_path=None):
@@ -62,7 +63,7 @@ def set_exif_metadata_exiftool(
             )
         return
 
-    args = [exiftool_cmd, "-overwrite_original"]
+    args = [exiftool_cmd, "-overwrite_original", "-charset", "utf8"]
     if title:
         args.append(f"-ImageDescription={title}")
         if verbose:
@@ -79,9 +80,21 @@ def set_exif_metadata_exiftool(
             if comment:
                 comment += "\n\n"
             comment += f"Description: {caption_description}"
-        args.append(f"-UserComment={comment}")
+
+        # Write comment to a temporary file (UTF-8 encoding)
+        with tempfile.NamedTemporaryFile(
+            "w", delete=False, encoding="utf-8", suffix=".txt"
+        ) as tf:
+            tf.write(comment)
+            temp_comment_path = tf.name
+
+        args.append(f"-UserComment<={temp_comment_path}")
+        args.append(f"-XPComment<={temp_comment_path}")
         if verbose:
             print(f"Comment: {comment}")
+    else:
+        temp_comment_path = None
+
     args.append(image_path)
 
     try:
