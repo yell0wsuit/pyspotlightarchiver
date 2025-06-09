@@ -25,6 +25,9 @@ from utils.exif_utils import (  # pylint: disable=import-error
     set_exif_metadata_exiftool,
 )
 
+CONSECUTIVE_MAX = 10
+CALLS_MAX = 100
+
 
 def _api_call(api_ver, locale, orientation, verbose=False):
     """Helper to call the API."""
@@ -305,8 +308,8 @@ def download_multiple_until_exhausted(
     save_dir=None,
     embed_exif=True,
     exiftool_path=None,
-    max_consecutive=5,
-    max_calls=100,
+    max_consecutive=CONSECUTIVE_MAX,
+    max_calls=CALLS_MAX,
 ):
     """
     Repeatedly call download_multiple 5 times until all images are already downloaded
@@ -317,7 +320,7 @@ def download_multiple_until_exhausted(
     delays = [5, 10, 15, 20, 30, 45, 60, 90, 120, 180]  # seconds
 
     while consecutive < max_consecutive and call_count < max_calls:
-        for _ in range(5):
+        for _ in range(max_consecutive):
             if consecutive >= max_consecutive or call_count >= max_calls:
                 break
             status = download_multiple(
@@ -344,8 +347,8 @@ def download_multiple_until_exhausted(
 
         if consecutive < max_consecutive and call_count < max_calls:
             delay = (
-                delays[min(call_count // 5 - 1, len(delays) - 1)]
-                if call_count // 5 <= len(delays)
+                delays[min(call_count // max_consecutive - 1, len(delays) - 1)]
+                if call_count // max_consecutive <= len(delays)
                 else 180
             )
             print(
