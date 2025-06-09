@@ -1,20 +1,24 @@
 # pyspotlightarchiver
 
-pyspotlightarchiver, a CLI tool written in Python to fetch, preserve and manage Windows Spotlight images.
+**pyspotlightarchiver** is a Python CLI tool for fetching, preserving, and managing Windows Spotlight images.
 
 Inspired by [Spotlight-Downloader](https://github.com/ORelio/Spotlight-Downloader).
 
-## Features
+## 🚀 Features
 
-- List available Spotlight pictures URLs.
-- Download Spotlight pictures to your computer.
+- List available Spotlight image URLs
+- Download Spotlight images in 1080p or 4K resolution
+- Filter by locale and orientation
+- Embed EXIF metadata with `exiftool`
+- Avoid duplicate downloads with perceptual hash and URL checks
+- Automatic throttling to avoid rate limits
 
-## Requirements
+## 📦 Requirements
 
-- (Tested on) Python 3.10 or higher. Install from [official website](https://www.python.org/downloads/).
-- [exiftool](https://exiftool.org/) to embed EXIF metadata in the images.
+- Python 3.10 or higher ([Download Python](https://www.python.org/downloads/))
+- [`exiftool`](https://exiftool.org/) (optional, required for `--embed-exif`)
 
-## Installation
+## ⚖️ Installation
 
 1. **Clone the repository:**
 
@@ -23,7 +27,7 @@ Inspired by [Spotlight-Downloader](https://github.com/ORelio/Spotlight-Downloade
    cd pyspotlightarchiver
    ```
 
-   You can also [download the repository as a zip file](https://github.com/yell0wsuit/pyspotlightarchiver/archive/refs/heads/main.zip) and extract it.
+   Or [download as ZIP](https://github.com/yell0wsuit/pyspotlightarchiver/archive/refs/heads/main.zip) and extract it.
 
 2. **(Optional) Create a virtual environment:**
 
@@ -33,66 +37,100 @@ Inspired by [Spotlight-Downloader](https://github.com/ORelio/Spotlight-Downloade
    source venv/bin/activate  # On Linux/Mac
    ```
 
+   We recommend using a virtual environment to avoid conflicts with other Python packages.
+
 3. **Install dependencies:**
 
    ```bash
    pip install -r requirements.txt
    ```
 
-## Usage
+## ⚙️ Usage
 
-Run the tool from the command line:
+Run the tool using:
 
 ```bash
-python ./src/main.py [options]
+python ./src/main.py [command] [options]
 ```
 
-- For listing available Spotlight pictures URLs, use the `list-url` command.
-- For downloading as many Spotlight pictures as possible to your computer, use the `download` command.
-  - 4K images: `download --api-ver 4 --multiple --embed-exif`
-  - 1080p images: `download --api-ver 3 --multiple --embed-exif`
-  - You can add `--locale all` to download images from all available locales.
+### Available commands
 
-### Options
+#### `list-url`
 
-| Command | Description |
-|---------|-------------|
-| `download` | Download Spotlight pictures to your computer. |
-| `list-url` | List available Spotlight pictures URLs. |
+List available Windows Spotlight image URLs.
 
-| Subcommand | Description |
-|------------|-------------|
-| `--single` | <strong>Only for `download` command.</strong><br>Download a single image.<br>If `--locale` is `all`, a random image is chosen from one of the available locales.<br>If `--orientation` is `both`, both versions are downloaded. |
-| `--multiple` | <strong>Only for `download` command.</strong><br>Download multiple images.<br>If `--locale` is `all`, every image from every locale is downloaded.<br>If `--orientation` is `both`, both versions are downloaded. |
-| `--save-dir` | <strong>Only for `download` command.</strong><br>Directory to save the images. Default: `downloaded_spotlight` in the current working directory. |
-| `--api-ver` | API version to use. |
-| `--locale` | Locale code to use. Format: `en-us`. Use `all` to include all available locales. |
-| `--orientation` | Image orientation to filter. Format: `landscape`, `portrait`, `both`. |
-| `--save-dir` | <strong>Only for `download` command.</strong><br>Directory to save the images. Default: `downloaded_spotlight` in the current working directory. |
-| `--embed-exif` | <strong>Only for `download` command.</strong><br>Embed EXIF metadata in the images using [exiftool](https://exiftool.org/). Default: false. |
-| `--exiftool-path` | <strong>Only for `download` command.</strong><br>Path to the exiftool executable. Default: using the PATH environment variable. |
-| `--verbose` | Verbose output. |
+```bash
+python ./src/main.py list-url [options]
+```
 
-## Notes
+| Option         | Description                                                                 |
+|----------------|-----------------------------------------------------------------------------|
+| `--api-ver`    | API version to use (`3` for 1080p, `4` for 4K). Default: `3`.               |
+| `--locale`     | Locale code (e.g., `en-us`). Use `all` to include all locales. Default: `en-us`. |
+| `--orientation`| Filter by image orientation: `landscape`, `portrait`, or `both`. Default: `landscape`. |
+| `--verbose`    | Enable verbose output.                                                      |
 
-- When you use the `--locale all` option, the tool automatically throttles API requests to help prevent rate limiting. Locales are processed in chunks of 15. After each chunk, the tool waits for a delay calculated as:
+#### `download`
 
-  `delay = 5 * current chunk number`
+Download Spotlight images to your computer.
 
-  For example:
+```bash
+python ./src/main.py download --single|--multiple [options]
+```
 
-  - After the first 15 locales, it waits 5 seconds.
-  - After the next 15, it waits 10 seconds.
-  - After the third chunk, it waits 15 seconds.
-  - ...and so on.
+**Required**:
 
-  The delay is capped at 180 seconds to prevent excessive waiting while balancing the rate limit. This strategy minimizes the number of requests sent in a short timeframe, thereby lowering the chance of exceeding API rate limits.
+- `--single`: Download a single image.
+  - If `--locale all`, a random locale is selected.
+  - If `--orientation both`, both orientations are downloaded.
 
-- Once images are downloaded, the tool records their URLs and perceptual hashes in a SQLite database.
-  - This database is located at `.cache/downloaded_images.sqlite` in the current working directory.
-  - It helps prevent the re-downloading of identical images.
-  - Additionally, it identifies potential duplicates and logs them in the `phash_duplicates_report.md` file in the current working directory.
+- `--multiple`: Download all available images.
+  - With `--locale all`, all locales are processed.
+  - With `--orientation both`, both versions are downloaded.
 
-## License
+**Additional Options**:
 
-This tool is licensed under the GPL-3.0 license. See [the LICENSE file](LICENSE) for more details.
+| Option            | Description                                                                 |
+|-------------------|-----------------------------------------------------------------------------|
+| `--api-ver`       | API version (`3` or `4`). Default: `3`.                                     |
+| `--locale`        | Locale code (e.g., `en-us`). Default: `en-us`.                              |
+| `--orientation`   | Image orientation: `landscape`, `portrait`, or `both`. Default: `landscape`. |
+| `--save-dir`      | Directory to save downloaded images. Default: `downloaded_spotlight`.       |
+| `--embed-exif`    | Embed EXIF metadata using `exiftool`.                                       |
+| `--exiftool-path` | Path to `exiftool`. Required if not in system `PATH`.                       |
+| `--verbose`       | Show detailed logs.                                                         |
+
+## 📌 Notes
+
+### 🔄 Locale throttling
+
+When using `--locale all`, the tool throttles API requests to avoid rate limits.
+
+- Locales are processed in chunks of 15.
+- Delay increases after each chunk:
+  - After 15 locales: wait 5 sec
+  - After 30: wait 10 sec
+  - After 45: wait 15 sec
+  - ...up to a maximum of 180 seconds.
+
+### 🔁 Download loop (with `--multiple`)
+
+The tool continues downloading images until:
+
+- No new images are found after 5 consecutive attempts, or
+- A maximum of 100 download attempts is reached.
+
+Delay increases gradually after every 5 attempts, capped at 180 seconds to avoid rate limiting.
+
+### 📂 Caching & duplicates
+
+- A local SQLite database tracks downloaded image URLs and perceptual hashes
+- Located at: `.cache/downloaded_images.sqlite`
+- Prevents redownloading of identical images.
+- Detected perceptual duplicates are logged in: `phash_duplicates_report.md`
+
+💡 **Tip**: Do not delete the cache database to preserve download history.
+
+## 📄 License
+
+This project is licensed under the [GNU GPLv3](LICENSE).
