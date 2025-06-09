@@ -25,8 +25,8 @@ from utils.exif_utils import (  # pylint: disable=import-error
     set_exif_metadata_exiftool,
 )
 
-CONSECUTIVE_MAX = 10
-CALLS_MAX = 100
+CONSECUTIVE_MAX = 20
+CALLS_MAX = 200
 
 
 def _api_call(api_ver, locale, orientation, verbose=False):
