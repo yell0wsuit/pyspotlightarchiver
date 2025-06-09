@@ -25,7 +25,7 @@ from utils.exif_utils import (  # pylint: disable=import-error
     set_exif_metadata_exiftool,
 )
 
-CONSECUTIVE_MAX = 20
+CONSECUTIVE_MAX = 50
 CALLS_MAX = 200
 
 
