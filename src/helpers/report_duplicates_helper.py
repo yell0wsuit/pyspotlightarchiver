@@ -40,9 +40,9 @@ def report_duplicates(save_dir=None):
         f.write("# Potential duplicates\n\n")
         for idx, (phash, items) in enumerate(duplicates.items()):
             f.write(f"## phash `{phash}`\n\n")
-            f.write(f"![phash {phash}]({items[0][0]})\n\n")
+            f.write(f"![phash {phash}]({items[0][0]})\n")
             for url, path in items:
-                f.write(f"- {url}  \n  Saved to `{path}`\n\n")
+                f.write(f"\n- {url}  \n  Saved to `{path}`\n")
             if idx < len(duplicates) - 1:  # Only add extra newline between groups
                 f.write("\n")
     return True
