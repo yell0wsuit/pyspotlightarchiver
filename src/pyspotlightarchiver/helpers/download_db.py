@@ -4,7 +4,7 @@ import sqlite3
 import os
 from contextlib import closing
 from datetime import datetime
-from helpers.download_helper import get_save_dir  # pylint: disable=import-error
+from pyspotlightarchiver.helpers.download_helper import get_save_dir  # pylint: disable=import-error
 
 DB_FILENAME = "downloaded_images.sqlite"
 

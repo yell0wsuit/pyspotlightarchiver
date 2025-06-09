@@ -1,12 +1,12 @@
 """Main module for the pyspotlightarchiver tool"""
 
 import argparse
-from utils.list_url import list_url  # pylint: disable=import-error
-from utils.download_utils import (  # pylint: disable=import-error
+from pyspotlightarchiver.utils.list_url import list_url  # pylint: disable=import-error
+from pyspotlightarchiver.utils.download_utils import (  # pylint: disable=import-error
     download_single,
     download_multiple_until_exhausted,
 )
-from helpers.download_db import init_db  # pylint: disable=import-error
+from pyspotlightarchiver.helpers.download_db import init_db  # pylint: disable=import-error
 
 
 def main():

@@ -18,9 +18,9 @@ classifiers = [
 license = "GPL-3.0-or-later"
 license-files = ["LICEN[CS]E*"]
 dependencies = [
-    requests
-    babel
-    imagededup
+  "requests",
+  "babel",
+  "imagededup",
 ]
 
 [project.urls]
@@ -31,4 +31,4 @@ Issues = "https://github.com/yell0wsuit/pyspotlightarchiver/issues"
 sources = ["src"]
 
 [project.scripts]
-pyspotlightarchiver = "main:main"
+pyspotlightarchiver = "pyspotlightarchiver.main:main"

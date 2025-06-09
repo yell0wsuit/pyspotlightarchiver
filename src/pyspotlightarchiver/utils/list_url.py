@@ -1,12 +1,10 @@
 """Module to list URLs for a given API version, locale, and orientation"""
 
-import time
-
-from helpers.v3_helper import v3_helper  # pylint: disable=import-error
-from helpers.v4_helper import v4_helper  # pylint: disable=import-error
-from helpers.retry_helper import retry_operation  # pylint: disable=import-error
-from utils.locale_data import get_locale_codes  # pylint: disable=import-error
-from utils.countdown import inline_countdown  # pylint: disable=import-error
+from pyspotlightarchiver.helpers.v3_helper import v3_helper  # pylint: disable=import-error
+from pyspotlightarchiver.helpers.v4_helper import v4_helper  # pylint: disable=import-error
+from pyspotlightarchiver.helpers.retry_helper import retry_operation  # pylint: disable=import-error
+from pyspotlightarchiver.utils.locale_data import get_locale_codes  # pylint: disable=import-error
+from pyspotlightarchiver.utils.countdown import inline_countdown  # pylint: disable=import-error
 
 
 def print_results(results, orientation, verbose=False):

@@ -5,7 +5,7 @@ import os
 import re
 from babel import localedata
 from babel.core import Locale
-from .exclude_locale import is_excluded
+from pyspotlightarchiver.utils.exclude_locale import is_excluded
 
 
 def generate_locale_codes():

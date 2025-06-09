@@ -2,30 +2,29 @@
 
 import os
 import random
-import time
 
-from helpers.download_helper import (  # pylint: disable=import-error
+from pyspotlightarchiver.helpers.download_helper import (  # pylint: disable=import-error
     download_image,
     download_images,
 )
-from helpers.retry_helper import retry_operation  # pylint: disable=import-error
-from helpers.v3_helper import v3_helper  # pylint: disable=import-error
-from helpers.v4_helper import v4_helper  # pylint: disable=import-error
-from helpers.download_db import (  # pylint: disable=import-error
+from pyspotlightarchiver.helpers.retry_helper import retry_operation  # pylint: disable=import-error
+from pyspotlightarchiver.helpers.v3_helper import v3_helper  # pylint: disable=import-error
+from pyspotlightarchiver.helpers.v4_helper import v4_helper  # pylint: disable=import-error
+from pyspotlightarchiver.helpers.download_db import (  # pylint: disable=import-error
     get_image_url_from_db,
     add_image_url_to_db,
     is_image_filename_valid,
 )
-from helpers.report_duplicates_helper import (  # pylint: disable=import-error
+from pyspotlightarchiver.helpers.report_duplicates_helper import (  # pylint: disable=import-error
     report_duplicates,
     get_report_path,
 )
-from helpers.imagehash_helper import compute_phash  # pylint: disable=import-error
-from utils.locale_data import get_locale_codes  # pylint: disable=import-error
-from utils.exif_utils import (  # pylint: disable=import-error
+from pyspotlightarchiver.helpers.imagehash_helper import compute_phash  # pylint: disable=import-error
+from pyspotlightarchiver.utils.locale_data import get_locale_codes  # pylint: disable=import-error
+from pyspotlightarchiver.utils.exif_utils import (  # pylint: disable=import-error
     set_exif_metadata_exiftool,
 )
-from utils.countdown import inline_countdown  # pylint: disable=import-error
+from pyspotlightarchiver.utils.countdown import inline_countdown  # pylint: disable=import-error
 
 CONSECUTIVE_MAX = 50
 CALLS_MAX = 200
