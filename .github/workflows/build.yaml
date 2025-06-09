@@ -38,11 +38,10 @@ jobs:
     publish-to-pypi:
         name: >-
             Publish Python 🐍 distribution 📦 to PyPI
+         # && contains(github.event.head_commit.modified, 'pyproject.toml') to be added for > v1.0.0
         if: |
-            startsWith(github.ref, 'refs/tags/')
-            || (
+            (
               github.ref == 'refs/heads/main'
-              && contains(github.event.head_commit.modified, 'pyproject.toml')
             )
         needs:
             - build
