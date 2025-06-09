@@ -312,8 +312,8 @@ def download_multiple_until_exhausted(
     max_calls=CALLS_MAX,
 ):
     """
-    Repeatedly call download_multiple 5 times until all images are already downloaded
-    for max_consecutive times in a row. Delays between every 5 calls to avoid rate limiting.
+    Repeatedly call download_multiple until all images are already downloaded
+    for max_consecutive times in a row. Delays between every 10 calls to avoid rate limiting.
     """
     consecutive = 0
     call_count = 0
@@ -345,16 +345,18 @@ def download_multiple_until_exhausted(
 
             call_count += 1
 
-        if consecutive < max_consecutive and call_count < max_calls:
-            delay = (
-                delays[min(call_count // max_consecutive - 1, len(delays) - 1)]
-                if call_count // max_consecutive <= len(delays)
-                else 180
-            )
-            print(
-                f"Delaying {delay} seconds before next call to avoid rate limiting..."
-            )
-            time.sleep(delay)
+            if call_count % 10 == 0 and (
+                consecutive < max_consecutive and call_count < max_calls
+            ):
+                delay = (
+                    delays[min(call_count // 10 - 1, len(delays) - 1)]
+                    if call_count // 10 <= len(delays)
+                    else 180
+                )
+                print(
+                    f"Delaying {delay} seconds before next call to avoid rate limiting..."
+                )
+                time.sleep(delay)
 
     print("Download finished (exhausted or max calls reached).")
 
