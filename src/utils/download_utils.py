@@ -342,7 +342,7 @@ def download_multiple_until_exhausted(
 
             call_count += 1
 
-        if consecutive < max_consecutive:
+        if consecutive < max_consecutive and call_count < max_calls:
             delay = (
                 delays[min(call_count // 5 - 1, len(delays) - 1)]
                 if call_count // 5 <= len(delays)
