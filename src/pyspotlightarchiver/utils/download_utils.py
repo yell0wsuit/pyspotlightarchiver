@@ -7,9 +7,15 @@ from pyspotlightarchiver.helpers.download_helper import (  # pylint: disable=imp
     download_image,
     download_images,
 )
-from pyspotlightarchiver.helpers.retry_helper import retry_operation  # pylint: disable=import-error
-from pyspotlightarchiver.helpers.v3_helper import v3_helper  # pylint: disable=import-error
-from pyspotlightarchiver.helpers.v4_helper import v4_helper  # pylint: disable=import-error
+from pyspotlightarchiver.helpers.retry_helper import (
+    retry_operation,
+)  # pylint: disable=import-error
+from pyspotlightarchiver.helpers.v3_helper import (
+    v3_helper,
+)  # pylint: disable=import-error
+from pyspotlightarchiver.helpers.v4_helper import (
+    v4_helper,
+)  # pylint: disable=import-error
 from pyspotlightarchiver.helpers.download_db import (  # pylint: disable=import-error
     get_image_url_from_db,
     add_image_url_to_db,
@@ -19,15 +25,20 @@ from pyspotlightarchiver.helpers.report_duplicates_helper import (  # pylint: di
     report_duplicates,
     get_report_path,
 )
-from pyspotlightarchiver.helpers.imagehash_helper import compute_phash  # pylint: disable=import-error
-from pyspotlightarchiver.utils.locale_data import get_locale_codes  # pylint: disable=import-error
+from pyspotlightarchiver.helpers.imagehash_helper import (
+    compute_phash,
+)  # pylint: disable=import-error
+from pyspotlightarchiver.utils.locale_data import (
+    get_locale_codes,
+)  # pylint: disable=import-error
 from pyspotlightarchiver.utils.exif_utils import (  # pylint: disable=import-error
     set_exif_metadata_exiftool,
 )
-from pyspotlightarchiver.utils.countdown import inline_countdown  # pylint: disable=import-error
+from pyspotlightarchiver.utils.countdown import (
+    inline_countdown,
+)  # pylint: disable=import-error
 
 CONSECUTIVE_MAX = 50
-CALLS_MAX = 200
 
 
 def _api_call(api_ver, locale, orientation, verbose=False):
@@ -313,7 +324,6 @@ def download_multiple_until_exhausted(
     embed_exif=True,
     exiftool_path=None,
     max_consecutive=CONSECUTIVE_MAX,
-    max_calls=CALLS_MAX,
 ):
     """
     Repeatedly call download_multiple until all images are already downloaded
@@ -322,10 +332,11 @@ def download_multiple_until_exhausted(
     consecutive = 0
     call_count = 0
     delays = [5, 10, 15, 20, 30, 45, 60, 90, 120, 180]  # seconds
-
-    while consecutive < max_consecutive and call_count < max_calls:
+    total_downloaded = 0
+    total_already_downloaded = 0
+    while consecutive < max_consecutive:
         for _ in range(max_consecutive):
-            if consecutive >= max_consecutive or call_count >= max_calls:
+            if consecutive >= max_consecutive:
                 break
             status = download_multiple(
                 api_ver,
@@ -338,7 +349,8 @@ def download_multiple_until_exhausted(
             )
             downloaded = status.get("downloaded", 0)
             already_downloaded = status.get("already_downloaded", 0)
-
+            total_downloaded += downloaded
+            total_already_downloaded += already_downloaded
             if downloaded == 0 and already_downloaded > 0:
                 consecutive += 1
                 print(
@@ -349,9 +361,7 @@ def download_multiple_until_exhausted(
 
             call_count += 1
 
-            if call_count % 10 == 0 and (
-                consecutive < max_consecutive and call_count < max_calls
-            ):
+            if call_count % 10 == 0:
                 delay = (
                     delays[min(call_count // 10 - 1, len(delays) - 1)]
                     if call_count // 10 <= len(delays)
@@ -359,7 +369,9 @@ def download_multiple_until_exhausted(
                 )
                 inline_countdown(delay)
 
-    print("Download finished (exhausted or max calls reached).")
+    print(
+        f"Download finished. New images downloaded: {total_downloaded}. Already downloaded: {total_already_downloaded}."
+    )
 
     if report_duplicates(save_dir):
         print(
