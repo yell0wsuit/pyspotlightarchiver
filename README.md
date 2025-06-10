@@ -123,12 +123,9 @@ When using `--locale all`, the tool throttles API requests to avoid rate limits.
 
 ### 🔁 Download loop (with `--multiple`)
 
-The tool continues downloading images until:
+The tool continues downloading images until no new images are found after 50 consecutive attempts.
 
-- No new images are found after 5 consecutive attempts, or
-- A maximum of 100 download attempts is reached.
-
-Delay increases gradually after every 5 attempts, capped at 180 seconds to avoid rate limiting.
+After every 10 attempts, delay increases gradually, capped at 180 seconds to avoid rate limiting.
 
 ### 📂 Caching & duplicates
 
