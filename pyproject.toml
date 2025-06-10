@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pyspotlightarchiver"
-version = "1.0.4"
+version = "1.0.5"
 authors = [
   { name="yell0wsuit" },
 ]
-description = "Fetch and download Windows Spotlight images. Lightweight and easy to use."
+description = "Fetch and download Windows Spotlight images automatically. Lightweight and easy to use."
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [

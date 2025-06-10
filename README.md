@@ -1,5 +1,7 @@
 # pyspotlightarchiver
 
+![pyspotlightarchiver hero](./pyspotlightarchiver_banner.png)
+
 **pyspotlightarchiver** is a Python CLI tool for fetching, preserving, and managing Windows Spotlight images.
 
 Inspired by [Spotlight-Downloader](https://github.com/ORelio/Spotlight-Downloader).
