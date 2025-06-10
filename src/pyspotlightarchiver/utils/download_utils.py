@@ -2,6 +2,7 @@
 
 import os
 import random
+import time
 
 from pyspotlightarchiver.helpers.download_helper import (  # pylint: disable=import-error
     download_image,
@@ -338,6 +339,7 @@ def download_multiple_until_exhausted(
         for _ in range(max_consecutive):
             if consecutive >= max_consecutive:
                 break
+            time.sleep(2)
             status = download_multiple(
                 api_ver,
                 locale,
