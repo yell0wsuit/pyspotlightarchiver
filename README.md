@@ -58,7 +58,7 @@ pip install pyspotlightarchiver
 Run the tool using:
 
 ```bash
-python ./src/main.py [command] [options]
+pyspotlightarchiver [command] [options]
 ```
 
 ### Available commands
@@ -68,7 +68,7 @@ python ./src/main.py [command] [options]
 List available Windows Spotlight image URLs.
 
 ```bash
-python ./src/main.py list-url [options]
+pyspotlightarchiver list-url [options]
 ```
 
 | Option         | Description                                                                 |
@@ -83,7 +83,7 @@ python ./src/main.py list-url [options]
 Download Spotlight images to your computer.
 
 ```bash
-python ./src/main.py download --single|--multiple [options]
+pyspotlightarchiver download --single|--multiple [options]
 ```
 
 **Required**:
