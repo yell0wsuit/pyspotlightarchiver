@@ -126,6 +126,7 @@ def _download_for_locale(
                 rprint(f"ℹ️ [gray]Image already downloaded:[/gray] {url}")
                 return True
         path = download_image(url, api_ver=api_ver, save_dir=save_dir)
+        rprint(f"✨ [green]New image found:[/green] {url}")
         rprint(f"✅ [green]Image saved to:[/green] {path}")
         filename = os.path.basename(path)
         add_image_url_to_db(url, compute_phash(path), filename, save_dir=save_dir)
@@ -152,7 +153,9 @@ def _download_for_all_locales(
     random.shuffle(locales_shuffled)
     for loc in locales_shuffled:
         if verbose:
-            rprint(f"ℹ️ [gray]LOG: [download_for_all_locales]Trying locale: {loc}[/gray]")
+            rprint(
+                f"ℹ️ [gray]LOG: [download_for_all_locales]Trying locale: {loc}[/gray]"
+            )
         if retry_operation(
             api_ver,
             loc,
