@@ -1,25 +1,37 @@
 """Module to list URLs for a given API version, locale, and orientation"""
 
-from pyspotlightarchiver.helpers.v3_helper import v3_helper  # pylint: disable=import-error
-from pyspotlightarchiver.helpers.v4_helper import v4_helper  # pylint: disable=import-error
-from pyspotlightarchiver.helpers.retry_helper import retry_operation  # pylint: disable=import-error
-from pyspotlightarchiver.utils.locale_data import get_locale_codes  # pylint: disable=import-error
-from pyspotlightarchiver.utils.countdown import inline_countdown  # pylint: disable=import-error
+from rich import print as rprint
+
+from pyspotlightarchiver.helpers.v3_helper import (
+    v3_helper,
+)
+from pyspotlightarchiver.helpers.v4_helper import (
+    v4_helper,
+)
+from pyspotlightarchiver.helpers.retry_helper import (
+    retry_operation,
+)
+from pyspotlightarchiver.utils.locale_data import (
+    get_locale_codes,
+)
+from pyspotlightarchiver.utils.countdown import (
+    inline_countdown,
+)
 
 
 def print_results(results, orientation, verbose=False):
     """Helper to print URLs from results based on orientation"""
     if verbose:
-        print(f"Found {len(results)} URLs")
+        rprint(f"ℹ️ [gray]LOG: [list_url]Found {len(results)} URLs[/gray]")
     for entry in results:
         if orientation == "both":
-            print(
+            rprint(
                 entry.get("image_url_landscape"),
                 entry.get("image_url_portrait"),
             )
         else:
-            print(entry.get("image_url"))
-    print(f"Found {len(results)} URLs")
+            rprint(entry.get("image_url"))
+    rprint(f"✅ [green]Found {len(results)} URLs[/green]")
 
 
 def get_results(api_ver, locale, orientation):
@@ -36,7 +48,7 @@ def process_all_locales(api_ver, all_locales, orientation, verbose):
         chunk = all_locales[i : i + chunk_size]
         for loc in chunk:
             if verbose:
-                print(f"--- {loc} ---")
+                rprint(f"ℹ️ [gray]LOG: [list_url]--- {loc} ---[/gray]")
             results = retry_operation(api_ver, loc, orientation, operation=get_results)
             print_results(results, orientation)
 
@@ -55,14 +67,14 @@ def list_url(api_ver, locale, orientation, verbose=False):
 
     total_urls = 0
 
-    print("Listing URLs...")
+    rprint("ℹ️ [gray]Listing URLs...[/gray]")
 
     if locale == "all":
         process_all_locales(api_ver, all_locales, orientation, verbose)
     else:
         if locale not in [l.lower() for l in all_locales]:
-            print(
-                f"Locale '{locale}' is not valid. Use one of: {', '.join(all_locales)}"
+            rprint(
+                f"❗ [red]Locale '{locale}' is not valid.[/red] Use one of: {', '.join(all_locales)}"
             )
             return
         # Use the correctly-cased locale from all_locales
@@ -71,4 +83,4 @@ def list_url(api_ver, locale, orientation, verbose=False):
         print_results(results, orientation)
         total_urls = len(results)
 
-    print(f"Done. Found {total_urls} URLs.")
+    rprint(f"✅ [green]Done.[/green] Found {total_urls} URLs.")

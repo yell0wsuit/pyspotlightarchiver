@@ -5,6 +5,7 @@ import shutil
 import os
 import platform
 import tempfile
+from rich import print as rprint
 
 
 def _exiftool_exists(exiftool_path=None):
@@ -54,12 +55,12 @@ def set_exif_metadata_exiftool(
 
     if not exiftool_cmd:
         if exiftool_path:
-            print(
-                f"ExifTool cannot be found at '{exiftool_path}'. Please check the path or install it from https://exiftool.org/"
+            rprint(
+                f"❌ [red]ExifTool cannot be found at '{exiftool_path}'. Please check the path or install it from https://exiftool.org/[/red]"
             )
         else:
-            print(
-                "ExifTool cannot be found. Please install it from https://exiftool.org/, or specify the path with --exiftool-path."
+            rprint(
+                "❌ [red]ExifTool cannot be found. Please install it from https://exiftool.org/, or specify the path with --exiftool-path.[/red]"
             )
         return
 
@@ -67,11 +68,11 @@ def set_exif_metadata_exiftool(
     if title:
         args.append(f"-ImageDescription={title}")
         if verbose:
-            print(f"Title: {title}")
+            rprint(f"ℹ️ [gray]LOG: [exiftool] Title:[/gray] {title}")
     if copyright_text:
         args.append(f"-Copyright={copyright_text}")
         if verbose:
-            print(f"Copyright: {copyright_text}")
+            rprint(f"ℹ️ [gray]LOG: [exiftool] Copyright:[/gray] {copyright_text}")
     if caption_title or caption_description:
         comment = ""
         if caption_title:
@@ -91,7 +92,7 @@ def set_exif_metadata_exiftool(
         args.append(f"-UserComment<={temp_comment_path}")
         args.append(f"-XPComment<={temp_comment_path}")
         if verbose:
-            print(f"Comment: {comment}")
+            rprint(f"ℹ️ [gray]LOG: [exiftool] Comment:[/gray] {comment}")
     else:
         temp_comment_path = None
 
@@ -100,11 +101,11 @@ def set_exif_metadata_exiftool(
     try:
         result = subprocess.run(args, capture_output=True, text=True, check=True)
         if verbose:
-            print(
-                f"EXIF metadata written to {image_path} using exiftool. Output: {result.stdout}"
+            rprint(
+                f"✅ [green]LOG: [exiftool] EXIF metadata written to:[/green] {image_path} using exiftool. Output: {result.stdout}"
             )
     except subprocess.CalledProcessError as e:
         if verbose:
-            print(f"ExifTool error: {e.stderr}")
+            rprint(f"❌ [red]LOG: [exiftool] ExifTool error:[/red] {e.stderr}")
     except Exception as e:
-        print(f"Error running exiftool: {e}")
+        rprint(f"❌ [red]LOG: [exiftool] Error running exiftool:[/red] {e}")

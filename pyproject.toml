@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pyspotlightarchiver"
-version = "1.0.5"
+version = "1.1.0"
 authors = [
   { name="yell0wsuit" },
 ]
@@ -21,6 +21,7 @@ dependencies = [
   "requests",
   "babel",
   "imagededup",
+  "rich",
 ]
 
 [project.urls]

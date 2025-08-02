@@ -2,6 +2,7 @@
 
 import os
 import requests
+from rich import print as rprint
 
 
 def get_save_dir(api_ver, save_dir=None):
@@ -69,5 +70,5 @@ def download_images(entry, orientation="landscape", save_dir=None, api_ver=None)
         url = entry.get("image_url")
         if url:
             results[url] = download_image(url, save_dir, api_ver)
-            print(f"Image saved to: {results[url]}")
+            rprint(f"✅ [green]Image saved to[/green]: {results[url]}")
     return results

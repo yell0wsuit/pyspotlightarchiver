@@ -1,7 +1,7 @@
 """Helper to report duplicates in the DB."""
 
 import os
-from pyspotlightarchiver.helpers.download_db import (  # pylint: disable=import-error
+from pyspotlightarchiver.helpers.download_db import (
     get_all_images,
 )
 
