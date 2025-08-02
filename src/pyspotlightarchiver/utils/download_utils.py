@@ -81,7 +81,7 @@ def _download_both_orientations(
                     exiftool_path=exiftool_path,
                     verbose=verbose,
                 )
-                rprint(f"✅ [green]EXIF metadata embedded in:[/green] {path}")
+                rprint("✅ [green]EXIF metadata embedded[/green]")
             found = True
     return found
 
@@ -139,7 +139,7 @@ def _download_for_locale(
                 exiftool_path=exiftool_path,
                 verbose=verbose,
             )
-            rprint(f"✅ [green]EXIF metadata embedded in[/green] {path}")
+            rprint("✅ [green]EXIF metadata embedded[/green]")
         return True
     return False
 
@@ -253,7 +253,7 @@ def _download_multiple_for_locale(
                             exiftool_path=exiftool_path,
                             verbose=verbose,
                         )
-                        rprint(f"✅ [green]EXIF metadata embedded in:[/green] {path}")
+                        rprint("✅ [green]EXIF metadata embedded[/green]")
                     if verbose:
                         rprint(
                             f"✅ [green]LOG: [download_multiple_for_locale]Downloaded entry {i+1}:[/green] {url}"
@@ -387,8 +387,8 @@ def download_multiple_until_exhausted(
     rprint(
         f"[bold magenta]=== Result ===[/bold magenta]\n"
         f"✅ [green]Download finished![/green]\n"
-        f"✨ New images downloaded:[/green] [orange]{total_downloaded}[/orange]\n"
-        f"🆗 Already downloaded:[/green] [orange]{total_already_downloaded}[/orange]"
+        f"✨ [green]New images downloaded:[/green] [orange]{total_downloaded}[/orange]\n"
+        f"🆗 [green]Already downloaded:[/green] [orange]{total_already_downloaded}[/orange]"
     )
 
     if report_duplicates(save_dir):

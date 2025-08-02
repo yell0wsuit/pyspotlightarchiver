@@ -25,10 +25,9 @@ def _exiftool_exists(exiftool_path=None):
                     return full_path
             return None
         # If a file path is provided, check if it exists and is executable
-        elif os.path.isfile(exiftool_path) and os.access(exiftool_path, os.X_OK):
+        if os.path.isfile(exiftool_path) and os.access(exiftool_path, os.X_OK):
             return exiftool_path
-        else:
-            return None
+        return None
     # Fall back to checking if exiftool is in PATH
     return shutil.which("exiftool")
 
@@ -107,5 +106,6 @@ def set_exif_metadata_exiftool(
     except subprocess.CalledProcessError as e:
         if verbose:
             rprint(f"❌ [red]LOG: [exiftool] ExifTool error:[/red] {e.stderr}")
-    except Exception as e:
-        rprint(f"❌ [red]LOG: [exiftool] Error running exiftool:[/red] {e}")
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        # We don't know what kind of exception until runtime
+        rprint(f"❌ [red]LOG: [exiftool] Unexpected error ({type(e).__name__}):[/red] {e}")
