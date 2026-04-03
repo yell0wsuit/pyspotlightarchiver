@@ -75,5 +75,5 @@ def download_images(entry, orientation="landscape", save_dir=None, api_ver=None)
         url = entry.get("image_url")
         if url:
             results[url] = download_image(url, save_dir, api_ver)
-            rprint(f"✅ [green]Image saved to[/green]: {results[url]}")
+            rprint(f"✅ [green]Image saved:[/green] {os.path.basename(results[url])}")
     return results

@@ -79,7 +79,7 @@ def _download_both_orientations(
             continue
         record = get_image_url_from_db(url, save_dir)
         if record and is_file_on_disk(record[2], save_dir, api_ver):
-            rprint(f"ℹ️ [gray]Image already downloaded:[/gray] {url}")
+            rprint(f"ℹ️ [gray]Already downloaded:[/gray] {record[2]}")
             continue
         urls_to_download.append((key, url))
 
@@ -93,7 +93,7 @@ def _download_both_orientations(
     with ThreadPoolExecutor(max_workers=len(urls_to_download)) as executor:
         for key, url, path in executor.map(_fetch, urls_to_download):
             label = "Landscape" if key == "image_url_landscape" else "Portrait"
-            rprint(f"✅ [green]{label} image saved to:[/green] {path}")
+            rprint(f"✅ [green]{label} image saved:[/green] {os.path.basename(path)}")
             filename = os.path.basename(path)
             add_image_url_to_db(url, compute_phash(path), filename, save_dir=save_dir)
             if embed_exif:
@@ -148,11 +148,11 @@ def _download_for_locale(
         if record:
             filename = record[2]
             if is_file_on_disk(filename, save_dir, api_ver):
-                rprint(f"ℹ️ [gray]Image already downloaded:[/gray] {url}")
+                rprint(f"ℹ️ [gray]Already downloaded:[/gray] {filename}")
                 return True
         path = download_image(url, api_ver=api_ver, save_dir=save_dir)
-        rprint(f"✨ [green]New image found:[/green] {url}")
-        rprint(f"✅ [green]Image saved to:[/green] {path}")
+        rprint(f"✨ [green]New image found:[/green] {os.path.basename(url.split('?')[0])}")
+        rprint(f"✅ [green]Image saved:[/green] {os.path.basename(path)}")
         filename = os.path.basename(path)
         add_image_url_to_db(url, compute_phash(path), filename, save_dir=save_dir)
         if embed_exif:
@@ -262,10 +262,14 @@ def _download_multiple_for_locale(
             if record:
                 filename = record[2]
                 if is_file_on_disk(filename, save_dir, api_ver):
-                    rprint(f"ℹ️ [gray]Image already downloaded:[/gray] {url}")
+                    if verbose:
+                        rprint(f"ℹ️ [gray]Already downloaded:[/gray] {filename}")
                     already_downloaded += 1
                     continue
         new_entries.append(entry)
+
+    if already_downloaded and not verbose:
+        rprint(f"ℹ️ [gray]Skipped {already_downloaded} already downloaded image(s).[/gray]")
 
     if not new_entries:
         return downloaded, already_downloaded
