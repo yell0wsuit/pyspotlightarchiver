@@ -23,7 +23,7 @@ from pyspotlightarchiver.helpers.v4_helper import (
 from pyspotlightarchiver.helpers.download_db import (
     get_image_url_from_db,
     add_image_url_to_db,
-    is_image_filename_valid,
+    is_file_on_disk,
 )
 from pyspotlightarchiver.helpers.report_duplicates_helper import (
     report_duplicates,
@@ -78,7 +78,7 @@ def _download_both_orientations(
             record = get_image_url_from_db(url, save_dir)
             if record:
                 filename = record[2]  # 3rd element is filename
-                if is_image_filename_valid(filename, save_dir, api_ver):
+                if is_file_on_disk(filename, save_dir, api_ver):
                     rprint(f"ℹ️ [gray]Image already downloaded:[/gray] {url}")
                     continue
             path = download_image(url, api_ver=api_ver, save_dir=save_dir)
@@ -138,7 +138,7 @@ def _download_for_locale(
         record = get_image_url_from_db(url, save_dir)
         if record:
             filename = record[2]
-            if is_image_filename_valid(filename, save_dir, api_ver):
+            if is_file_on_disk(filename, save_dir, api_ver):
                 rprint(f"ℹ️ [gray]Image already downloaded:[/gray] {url}")
                 return True
         path = download_image(url, api_ver=api_ver, save_dir=save_dir)
@@ -252,7 +252,7 @@ def _download_multiple_for_locale(
             record = get_image_url_from_db(url, save_dir)
             if record:
                 filename = record[2]
-                if is_image_filename_valid(filename, save_dir, api_ver):
+                if is_file_on_disk(filename, save_dir, api_ver):
                     rprint(f"ℹ️ [gray]Image already downloaded:[/gray] {url}")
                     already_downloaded += 1
                     continue

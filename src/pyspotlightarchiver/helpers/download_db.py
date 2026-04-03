@@ -104,6 +104,12 @@ def is_image_filename_valid(filename, save_dir, api_ver=None):
     return record is not None and os.path.exists(full_path)
 
 
+def is_file_on_disk(filename, save_dir, api_ver=None):
+    """Check if the image file exists on disk. Skips DB lookup — use when record is already confirmed."""
+    full_path = os.path.join(get_save_dir(api_ver, save_dir), filename)
+    return os.path.exists(full_path)
+
+
 def get_all_images(save_dir):
     """
     Returns a list of (url, phash, filename) for all images in the DB.
