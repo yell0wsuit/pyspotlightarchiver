@@ -23,7 +23,7 @@ from pyspotlightarchiver.helpers.v4_helper import (
 from pyspotlightarchiver.helpers.download_db import (
     get_image_url_from_db,
     add_image_url_to_db,
-    is_image_filename_valid,
+    is_file_on_disk,
 )
 from pyspotlightarchiver.helpers.report_duplicates_helper import (
     report_duplicates,
@@ -72,19 +72,28 @@ def _download_both_orientations(
     entry, api_ver, save_dir=None, embed_exif=True, exiftool_path=None, verbose=False
 ):
     found = False
+    urls_to_download = []
     for key in ["image_url_landscape", "image_url_portrait"]:
         url = entry.get(key)
-        if url:
-            record = get_image_url_from_db(url, save_dir)
-            if record:
-                filename = record[2]  # 3rd element is filename
-                if is_image_filename_valid(filename, save_dir, api_ver):
-                    rprint(f"ℹ️ [gray]Image already downloaded:[/gray] {url}")
-                    continue
-            path = download_image(url, api_ver=api_ver, save_dir=save_dir)
-            rprint(
-                f"✅ [green]{'Landscape' if key == 'image_url_landscape' else 'Portrait'} image saved to:[/green] {path}"
-            )
+        if not url:
+            continue
+        record = get_image_url_from_db(url, save_dir)
+        if record and is_file_on_disk(record[2], save_dir, api_ver):
+            rprint(f"ℹ️ [gray]Image already downloaded:[/gray] {url}")
+            continue
+        urls_to_download.append((key, url))
+
+    if not urls_to_download:
+        return found
+
+    def _fetch(key_url):
+        key, url = key_url
+        return key, url, download_image(url, api_ver=api_ver, save_dir=save_dir)
+
+    with ThreadPoolExecutor(max_workers=len(urls_to_download)) as executor:
+        for key, url, path in executor.map(_fetch, urls_to_download):
+            label = "Landscape" if key == "image_url_landscape" else "Portrait"
+            rprint(f"✅ [green]{label} image saved to:[/green] {path}")
             filename = os.path.basename(path)
             add_image_url_to_db(url, compute_phash(path), filename, save_dir=save_dir)
             if embed_exif:
@@ -138,7 +147,7 @@ def _download_for_locale(
         record = get_image_url_from_db(url, save_dir)
         if record:
             filename = record[2]
-            if is_image_filename_valid(filename, save_dir, api_ver):
+            if is_file_on_disk(filename, save_dir, api_ver):
                 rprint(f"ℹ️ [gray]Image already downloaded:[/gray] {url}")
                 return True
         path = download_image(url, api_ver=api_ver, save_dir=save_dir)
@@ -252,7 +261,7 @@ def _download_multiple_for_locale(
             record = get_image_url_from_db(url, save_dir)
             if record:
                 filename = record[2]
-                if is_image_filename_valid(filename, save_dir, api_ver):
+                if is_file_on_disk(filename, save_dir, api_ver):
                     rprint(f"ℹ️ [gray]Image already downloaded:[/gray] {url}")
                     already_downloaded += 1
                     continue
@@ -349,14 +358,15 @@ def download_multiple(
             "already_downloaded": total_already_downloaded,
         }
 
-    if locale not in [l.lower() for l in all_locales]:
+    all_locales_lower = [l.lower() for l in all_locales]
+    if locale not in all_locales_lower:
         rprint(
             f"❗ [red]Locale '{locale}' is not valid.[/red] Use one of: {', '.join(all_locales)}"
         )
         return {"downloaded": 0, "already_downloaded": 0}
 
     # Use the correctly-cased locale from all_locales
-    real_locale = all_locales[[l.lower() for l in all_locales].index(locale)]
+    real_locale = all_locales[all_locales_lower.index(locale)]
     downloaded, already_downloaded = _download_multiple_for_locale(
         api_ver, real_locale, orientation, verbose, save_dir, embed_exif, exiftool_path
     )
@@ -383,40 +393,37 @@ def download_multiple_until_exhausted(
     total_downloaded = 0
     total_already_downloaded = 0
     while consecutive < max_consecutive:
-        for _ in range(max_consecutive):
-            if consecutive >= max_consecutive:
-                break
-            time.sleep(2)
-            status = download_multiple(
-                api_ver,
-                locale,
-                orientation,
-                verbose=verbose,
-                save_dir=save_dir,
-                embed_exif=embed_exif,
-                exiftool_path=exiftool_path,
+        time.sleep(2)
+        status = download_multiple(
+            api_ver,
+            locale,
+            orientation,
+            verbose=verbose,
+            save_dir=save_dir,
+            embed_exif=embed_exif,
+            exiftool_path=exiftool_path,
+        )
+        downloaded = status.get("downloaded", 0)
+        already_downloaded = status.get("already_downloaded", 0)
+        total_downloaded += downloaded
+        total_already_downloaded += already_downloaded
+        if downloaded == 0 and already_downloaded > 0:
+            consecutive += 1
+            rprint(
+                f"😐 [powderblue]Number of consecutive calls with no new downloads:[/powderblue] [orange]{consecutive}/{max_consecutive}[/orange]"
             )
-            downloaded = status.get("downloaded", 0)
-            already_downloaded = status.get("already_downloaded", 0)
-            total_downloaded += downloaded
-            total_already_downloaded += already_downloaded
-            if downloaded == 0 and already_downloaded > 0:
-                consecutive += 1
-                rprint(
-                    f"😐 [powderblue]Number of consecutive calls with no new downloads:[/powderblue] [orange]{consecutive}/{max_consecutive}[/orange]"
-                )
-            else:
-                consecutive = 0
+        else:
+            consecutive = 0
 
-            call_count += 1
+        call_count += 1
 
-            if call_count % 10 == 0 and consecutive < max_consecutive:
-                delay = (
-                    delays[min(call_count // 10 - 1, len(delays) - 1)]
-                    if call_count // 10 <= len(delays)
-                    else 180
-                )
-                inline_countdown(delay)
+        if call_count % 10 == 0 and consecutive < max_consecutive:
+            delay = (
+                delays[min(call_count // 10 - 1, len(delays) - 1)]
+                if call_count // 10 <= len(delays)
+                else 180
+            )
+            inline_countdown(delay)
 
     rprint(
         f"[bold magenta]=== Result ===[/bold magenta]\n"
