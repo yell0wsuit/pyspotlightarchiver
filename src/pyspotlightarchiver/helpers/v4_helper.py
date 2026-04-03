@@ -2,7 +2,7 @@
 
 import json
 import os
-import requests
+from pyspotlightarchiver.helpers.download_helper import _get_session
 
 
 def parse_v4_data(data, orientation="landscape", verbose=False):
@@ -51,6 +51,6 @@ def v4_helper(use_local=False, orientation="landscape", locale="en-us", verbose=
             f"&locale={locale}"
             f"&fmt=json"
         )
-        response = requests.get(url, timeout=10)
+        response = _get_session().get(url, timeout=10)
         data = response.json()
     return parse_v4_data(data, orientation=orientation, verbose=verbose)

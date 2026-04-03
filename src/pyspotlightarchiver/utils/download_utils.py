@@ -394,15 +394,20 @@ def download_multiple_until_exhausted(
     total_already_downloaded = 0
     while consecutive < max_consecutive:
         time.sleep(2)
-        status = download_multiple(
-            api_ver,
-            locale,
-            orientation,
-            verbose=verbose,
-            save_dir=save_dir,
-            embed_exif=embed_exif,
-            exiftool_path=exiftool_path,
-        )
+        try:
+            status = download_multiple(
+                api_ver,
+                locale,
+                orientation,
+                verbose=verbose,
+                save_dir=save_dir,
+                embed_exif=embed_exif,
+                exiftool_path=exiftool_path,
+            )
+        except requests.exceptions.RequestException as e:
+            rprint(f"⚠️ [yellow]Network error, retrying: {e}[/yellow]")
+            call_count += 1
+            continue
         downloaded = status.get("downloaded", 0)
         already_downloaded = status.get("already_downloaded", 0)
         total_downloaded += downloaded

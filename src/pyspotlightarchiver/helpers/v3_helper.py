@@ -2,7 +2,7 @@
 
 import json
 import os
-import requests
+from pyspotlightarchiver.helpers.download_helper import _get_session
 
 
 def parse_v3_data(data, orientation="landscape", verbose=False):
@@ -49,6 +49,6 @@ def v3_helper(use_local=False, orientation="landscape", locale="en-us", verbose=
             f"&ua=WindowsShellClient%2F9.0.40929.0%20%28Windows%29"
             f"&bcnt=3&cdm=1"
         )
-        response = requests.get(url, timeout=10)
+        response = _get_session().get(url, timeout=10)
         data = response.json()
     return parse_v3_data(data, orientation=orientation, verbose=verbose)
