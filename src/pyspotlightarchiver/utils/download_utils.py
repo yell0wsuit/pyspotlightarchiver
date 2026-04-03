@@ -384,11 +384,8 @@ def download_multiple_until_exhausted(
     total_downloaded = 0
     total_already_downloaded = 0
     while consecutive < max_consecutive:
-        for _ in range(max_consecutive):
-            if consecutive >= max_consecutive:
-                break
-            time.sleep(2)
-            status = download_multiple(
+        time.sleep(2)
+        status = download_multiple(
                 api_ver,
                 locale,
                 orientation,
