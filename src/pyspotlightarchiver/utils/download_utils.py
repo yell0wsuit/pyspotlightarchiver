@@ -4,6 +4,7 @@ import os
 import random
 import time
 from concurrent.futures import ThreadPoolExecutor
+import requests
 from rich import print as rprint
 
 from pyspotlightarchiver.helpers.download_helper import (
@@ -110,7 +111,7 @@ def _download_for_locale(
     embed_exif=True,
     exiftool_path=None,
 ):
-    all_locales = get_locale_codes(api_ver)
+    all_locales = get_locale_codes(api_ver, save_dir)
     all_locales_lower = [l.lower() for l in all_locales]
     if locale not in all_locales_lower:
         rprint(
@@ -163,7 +164,7 @@ def _download_for_locale(
 def _download_for_all_locales(
     api_ver, orientation, verbose=False, save_dir=None, exiftool_path=None
 ):
-    all_locales = get_locale_codes(api_ver)
+    all_locales = get_locale_codes(api_ver, save_dir)
     locales_shuffled = all_locales[:]
     random.shuffle(locales_shuffled)
     for loc in locales_shuffled:
@@ -270,7 +271,7 @@ def _download_multiple_for_locale(
         for i, future in enumerate(futures):
             try:
                 entry, results = future.result()
-            except Exception as exc:
+            except (requests.exceptions.RequestException, OSError) as exc:
                 rprint(f"⚠️ [yellow]Failed to download entry {i + 1}: {exc}[/yellow]")
                 continue
             for url, path, filename, phash in results:
@@ -309,7 +310,7 @@ def download_multiple(
     Returns the number of images downloaded.
     """
 
-    all_locales = get_locale_codes(api_ver)
+    all_locales = get_locale_codes(api_ver, save_dir)
     locale = locale.lower()
 
     if locale == "all":
