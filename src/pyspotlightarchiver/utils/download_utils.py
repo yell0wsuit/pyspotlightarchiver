@@ -3,6 +3,7 @@
 import os
 import random
 import time
+from concurrent.futures import ThreadPoolExecutor
 from rich import print as rprint
 
 from pyspotlightarchiver.helpers.download_helper import (
@@ -41,6 +42,20 @@ from pyspotlightarchiver.utils.countdown import (
 )
 
 CONSECUTIVE_MAX = 50
+MAX_DOWNLOAD_WORKERS = 8
+
+
+def _download_entry(entry, orientation, api_ver, save_dir):
+    """Worker: download image(s) for one entry and compute phash.
+    Returns (entry, list of (url, path, filename, phash)).
+    """
+    paths = download_images(entry, orientation, api_ver=api_ver, save_dir=save_dir)
+    results = []
+    for url, path in paths.items():
+        if path:
+            phash = compute_phash(path)
+            results.append((url, path, os.path.basename(path), phash))
+    return entry, results
 
 
 def _api_call(api_ver, locale, orientation, verbose=False):
@@ -228,7 +243,9 @@ def _download_multiple_for_locale(
     downloaded = 0
     already_downloaded = 0
 
-    for i, entry in enumerate(entries):
+    # Pre-filter entries already in DB (only works for single-orientation where image_url exists)
+    new_entries = []
+    for entry in entries:
         url = entry.get("image_url")
         if url:
             record = get_image_url_from_db(url, save_dir)
@@ -238,30 +255,39 @@ def _download_multiple_for_locale(
                     rprint(f"ℹ️ [gray]Image already downloaded:[/gray] {url}")
                     already_downloaded += 1
                     continue
-        paths = download_images(entry, orientation, api_ver=api_ver, save_dir=save_dir)
-        if paths:
-            for url, path in paths.items():
-                if path:
-                    filename = os.path.basename(path)
-                    add_image_url_to_db(
-                        url, compute_phash(path), filename, save_dir=save_dir
+        new_entries.append(entry)
+
+    if not new_entries:
+        return downloaded, already_downloaded
+
+    # Parallel download + phash
+    workers = min(len(new_entries), MAX_DOWNLOAD_WORKERS)
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = [
+            executor.submit(_download_entry, entry, orientation, api_ver, save_dir)
+            for entry in new_entries
+        ]
+        for i, future in enumerate(futures):
+            entry, results = future.result()
+            for url, path, filename, phash in results:
+                add_image_url_to_db(url, phash, filename, save_dir=save_dir)
+                if embed_exif and locale != "all":
+                    set_exif_metadata_exiftool(
+                        path,
+                        title=entry.get("title") or entry.get("picture_title"),
+                        copyright_text=entry.get("copyright"),
+                        caption_title=entry.get("caption_title"),
+                        caption_description=entry.get("caption_description"),
+                        exiftool_path=exiftool_path,
+                        verbose=verbose,
                     )
-                    if embed_exif and locale != "all":
-                        set_exif_metadata_exiftool(
-                            path,
-                            title=entry.get("title") or entry.get("picture_title"),
-                            copyright_text=entry.get("copyright"),
-                            caption_title=entry.get("caption_title"),
-                            caption_description=entry.get("caption_description"),
-                            exiftool_path=exiftool_path,
-                            verbose=verbose,
-                        )
-                        rprint("✅ [green]EXIF metadata embedded[/green]")
-                    if verbose:
-                        rprint(
-                            f"✅ [green]LOG: [download_multiple_for_locale]Downloaded entry {i+1}:[/green] {url}"
-                        )
-                    downloaded += 1
+                    rprint("✅ [green]EXIF metadata embedded[/green]")
+                if verbose:
+                    rprint(
+                        f"✅ [green]LOG: [download_multiple_for_locale]"
+                        f"Downloaded entry {i + 1}:[/green] {url}"
+                    )
+                downloaded += 1
     return downloaded, already_downloaded
 
 
