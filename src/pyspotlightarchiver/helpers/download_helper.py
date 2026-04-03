@@ -1,8 +1,18 @@
 """Module for downloading images from API"""
 
 import os
+import threading
 import requests
 from rich import print as rprint
+
+_thread_local = threading.local()
+
+
+def _get_session():
+    """Return a per-thread requests.Session (creates one if needed)."""
+    if not hasattr(_thread_local, "session"):
+        _thread_local.session = requests.Session()
+    return _thread_local.session
 
 
 def get_save_dir(api_ver, save_dir=None):
@@ -43,7 +53,7 @@ def download_image(url, save_dir=None, api_ver=None):
     Otherwise, saves to the appropriate folder based on api_ver.
     Returns the image file path.
     """
-    response = requests.get(url, timeout=10)
+    response = _get_session().get(url, timeout=10)
     response.raise_for_status()
     save_dir = get_save_dir(api_ver, save_dir)
     filename = os.path.basename(url.split("?")[0])
