@@ -24,15 +24,9 @@ def get_save_dir(api_ver, save_dir=None):
         save_dir if save_dir else os.path.join(os.getcwd(), "downloaded_spotlight")
     )
     if api_ver == 3:
-        save_dir = (
-            os.path.join(base_dir, "1080p")
-            if save_dir
-            else os.path.join(base_dir, "1080p")
-        )
+        save_dir = os.path.join(base_dir, "1080p")
     elif api_ver == 4:
-        save_dir = (
-            os.path.join(base_dir, "4K") if save_dir else os.path.join(base_dir, "4K")
-        )
+        save_dir = os.path.join(base_dir, "4K")
     else:
         save_dir = base_dir
     os.makedirs(save_dir, exist_ok=True)

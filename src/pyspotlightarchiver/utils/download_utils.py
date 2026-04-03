@@ -268,7 +268,11 @@ def _download_multiple_for_locale(
             for entry in new_entries
         ]
         for i, future in enumerate(futures):
-            entry, results = future.result()
+            try:
+                entry, results = future.result()
+            except Exception as exc:
+                rprint(f"⚠️ [yellow]Failed to download entry {i + 1}: {exc}[/yellow]")
+                continue
             for url, path, filename, phash in results:
                 add_image_url_to_db(url, phash, filename, save_dir=save_dir)
                 if embed_exif and locale != "all":
