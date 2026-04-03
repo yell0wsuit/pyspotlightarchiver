@@ -4,7 +4,7 @@ import json
 import os
 import re
 from babel import localedata
-from babel.core import Locale
+from babel.core import Locale, UnknownLocaleError
 from pyspotlightarchiver.utils.exclude_locale import is_excluded
 
 
@@ -20,20 +20,21 @@ def generate_locale_codes():
                 code = f"{locale.language}-{locale.territory}"
                 if pattern.match(code):
                     locale_codes.add(code)
-        except Exception:
+        except (UnknownLocaleError, ValueError):
             continue
 
     return sorted(locale_codes)
 
 
-def get_cache_file(api_ver):
+def get_cache_file(api_ver, save_dir=None):
     """Get the cache file for a given API version."""
-    return os.path.join(os.getcwd(), ".cache", f"locale_cache_{api_ver}.json")
+    base = save_dir if save_dir else os.getcwd()
+    return os.path.join(base, ".cache", f"locale_cache_{api_ver}.json")
 
 
-def get_locale_codes(api_ver=3):
+def get_locale_codes(api_ver=3, save_dir=None):
     """Load locale codes from cache if available."""
-    cache_file = get_cache_file(api_ver)
+    cache_file = get_cache_file(api_ver, save_dir)
     if os.path.exists(cache_file):
         try:
             with open(cache_file, "r", encoding="utf-8") as f:
