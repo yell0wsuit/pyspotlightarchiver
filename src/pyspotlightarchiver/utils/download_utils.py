@@ -349,14 +349,15 @@ def download_multiple(
             "already_downloaded": total_already_downloaded,
         }
 
-    if locale not in [l.lower() for l in all_locales]:
+    all_locales_lower = [l.lower() for l in all_locales]
+    if locale not in all_locales_lower:
         rprint(
             f"❗ [red]Locale '{locale}' is not valid.[/red] Use one of: {', '.join(all_locales)}"
         )
         return {"downloaded": 0, "already_downloaded": 0}
 
     # Use the correctly-cased locale from all_locales
-    real_locale = all_locales[[l.lower() for l in all_locales].index(locale)]
+    real_locale = all_locales[all_locales_lower.index(locale)]
     downloaded, already_downloaded = _download_multiple_for_locale(
         api_ver, real_locale, orientation, verbose, save_dir, embed_exif, exiftool_path
     )
