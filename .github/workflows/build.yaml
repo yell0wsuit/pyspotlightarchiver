@@ -7,6 +7,9 @@ on:
         tags:
             - "*"
 
+permissions:
+    contents: read
+
 jobs:
     build:
         name: Build distribution 📦
@@ -50,6 +53,7 @@ jobs:
             name: pypi
             url: https://pypi.org/p/pyspotlightarchiver
         permissions:
+            contents: read
             id-token: write # IMPORTANT: mandatory for trusted publishing
 
         steps:
