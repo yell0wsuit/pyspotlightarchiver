@@ -106,7 +106,7 @@ def _download_both_orientations(
                     exiftool_path=exiftool_path,
                     verbose=verbose,
                 )
-                rprint("✅ [green]EXIF metadata embedded[/green]")
+                rprint(f"✅ [green]EXIF metadata embedded for:[/green] {filename}")
             found = True
     return found
 
@@ -165,7 +165,7 @@ def _download_for_locale(
                 exiftool_path=exiftool_path,
                 verbose=verbose,
             )
-            rprint("✅ [green]EXIF metadata embedded[/green]")
+            rprint(f"✅ [green]EXIF metadata embedded for:[/green] {filename}")
         return True
     return False
 
@@ -299,7 +299,7 @@ def _download_multiple_for_locale(
                         exiftool_path=exiftool_path,
                         verbose=verbose,
                     )
-                    rprint("✅ [green]EXIF metadata embedded[/green]")
+                    rprint(f"✅ [green]EXIF metadata embedded for:[/green] {filename}")
                 if verbose:
                     rprint(
                         f"✅ [green]LOG: [download_multiple_for_locale]"
