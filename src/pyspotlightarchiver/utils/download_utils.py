@@ -269,7 +269,7 @@ def _download_multiple_for_locale(
         new_entries.append(entry)
 
     if already_downloaded and not verbose:
-        rprint(f"ℹ️ [gray]Skipped {already_downloaded} already downloaded image(s).[/gray]")
+        rprint("ℹ️ [gray]No new images found, continuing...[/gray]")
 
     if not new_entries:
         return downloaded, already_downloaded
