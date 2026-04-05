@@ -1,3 +1,4 @@
 requests
 babel
 imagededup
+rich
