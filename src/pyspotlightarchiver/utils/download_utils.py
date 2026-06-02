@@ -36,7 +36,7 @@ from pyspotlightarchiver.utils.locale_data import (
     get_locale_codes,
 )
 from pyspotlightarchiver.utils.exif_utils import (
-    set_exif_metadata_exiftool,
+    set_exif_metadata,
 )
 from pyspotlightarchiver.utils.countdown import (
     inline_countdown,
@@ -69,7 +69,7 @@ def _api_call(api_ver, locale, orientation, verbose=False):
 
 
 def _download_both_orientations(
-    entry, api_ver, save_dir=None, embed_exif=True, exiftool_path=None, verbose=False
+    entry, api_ver, save_dir=None, embed_exif=True, verbose=False
 ):
     found = False
     urls_to_download = []
@@ -97,13 +97,12 @@ def _download_both_orientations(
             filename = os.path.basename(path)
             add_image_url_to_db(url, compute_phash(path), filename, save_dir=save_dir)
             if embed_exif:
-                set_exif_metadata_exiftool(
+                set_exif_metadata(
                     path,
                     title=entry.get("title") or entry.get("picture_title"),
                     copyright_text=entry.get("copyright"),
                     caption_title=entry.get("caption_title"),
                     caption_description=entry.get("caption_description"),
-                    exiftool_path=exiftool_path,
                     verbose=verbose,
                 )
                 rprint(f"✅ [green]EXIF metadata embedded for:[/green] {filename}")
@@ -118,7 +117,6 @@ def _download_for_locale(
     verbose,
     save_dir=None,
     embed_exif=True,
-    exiftool_path=None,
 ):
     all_locales = get_locale_codes(api_ver, save_dir)
     all_locales_lower = [l.lower() for l in all_locales]
@@ -140,7 +138,7 @@ def _download_for_locale(
 
     if orientation == "both":
         return _download_both_orientations(
-            entry, api_ver, save_dir, embed_exif, exiftool_path
+            entry, api_ver, save_dir, embed_exif, verbose
         )
     url = entry.get("image_url")
     if url:
@@ -156,13 +154,12 @@ def _download_for_locale(
         filename = os.path.basename(path)
         add_image_url_to_db(url, compute_phash(path), filename, save_dir=save_dir)
         if embed_exif:
-            set_exif_metadata_exiftool(
+            set_exif_metadata(
                 path,
                 title=entry.get("title") or entry.get("picture_title"),
                 copyright_text=entry.get("copyright"),
                 caption_title=entry.get("caption_title"),
                 caption_description=entry.get("caption_description"),
-                exiftool_path=exiftool_path,
                 verbose=verbose,
             )
             rprint(f"✅ [green]EXIF metadata embedded for:[/green] {filename}")
@@ -170,9 +167,7 @@ def _download_for_locale(
     return False
 
 
-def _download_for_all_locales(
-    api_ver, orientation, verbose=False, save_dir=None, exiftool_path=None
-):
+def _download_for_all_locales(api_ver, orientation, verbose=False, save_dir=None):
     all_locales = get_locale_codes(api_ver, save_dir)
     locales_shuffled = all_locales[:]
     random.shuffle(locales_shuffled)
@@ -188,7 +183,6 @@ def _download_for_all_locales(
             verbose,
             operation=download_single,
             save_dir=save_dir,
-            exiftool_path=exiftool_path,
         ):
             return True
     if verbose:
@@ -205,7 +199,6 @@ def download_single(
     verbose=False,
     save_dir=None,
     embed_exif=True,
-    exiftool_path=None,
 ):
     """
     Download a single image (first entry) from the specified API version.
@@ -219,10 +212,9 @@ def download_single(
             orientation,
             verbose=verbose,
             save_dir=save_dir,
-            exiftool_path=exiftool_path,
         )
     result = _download_for_locale(
-        api_ver, locale, orientation, verbose, save_dir, embed_exif, exiftool_path
+        api_ver, locale, orientation, verbose, save_dir, embed_exif
     )
     if report_duplicates(save_dir):
         rprint(
@@ -238,7 +230,6 @@ def _download_multiple_for_locale(
     verbose=False,
     save_dir=None,
     embed_exif=True,
-    exiftool_path=None,
 ):
     """Helper to download all images for a single locale. Returns count."""
     entries = _api_call(api_ver, locale, orientation, verbose)
@@ -290,13 +281,12 @@ def _download_multiple_for_locale(
             for url, path, filename, phash in results:
                 add_image_url_to_db(url, phash, filename, save_dir=save_dir)
                 if embed_exif and locale != "all":
-                    set_exif_metadata_exiftool(
+                    set_exif_metadata(
                         path,
                         title=entry.get("title") or entry.get("picture_title"),
                         copyright_text=entry.get("copyright"),
                         caption_title=entry.get("caption_title"),
                         caption_description=entry.get("caption_description"),
-                        exiftool_path=exiftool_path,
                         verbose=verbose,
                     )
                     rprint(f"✅ [green]EXIF metadata embedded for:[/green] {filename}")
@@ -316,7 +306,6 @@ def download_multiple(
     verbose=False,
     save_dir=None,
     embed_exif=True,
-    exiftool_path=None,
 ):
     """
     Download multiple images (all entries) from the specified API version.
@@ -343,7 +332,6 @@ def download_multiple(
                     verbose,
                     operation=_download_multiple_for_locale,
                     save_dir=save_dir,
-                    exiftool_path=exiftool_path,
                     embed_exif=embed_exif,
                 )
                 total_downloaded += downloaded
@@ -372,7 +360,7 @@ def download_multiple(
     # Use the correctly-cased locale from all_locales
     real_locale = all_locales[all_locales_lower.index(locale)]
     downloaded, already_downloaded = _download_multiple_for_locale(
-        api_ver, real_locale, orientation, verbose, save_dir, embed_exif, exiftool_path
+        api_ver, real_locale, orientation, verbose, save_dir, embed_exif
     )
     return {"downloaded": downloaded, "already_downloaded": already_downloaded}
 
@@ -384,7 +372,6 @@ def download_multiple_until_exhausted(
     verbose=False,
     save_dir=None,
     embed_exif=True,
-    exiftool_path=None,
     max_consecutive=CONSECUTIVE_MAX,
 ):
     """
@@ -406,7 +393,6 @@ def download_multiple_until_exhausted(
                 verbose=verbose,
                 save_dir=save_dir,
                 embed_exif=embed_exif,
-                exiftool_path=exiftool_path,
             )
         except requests.exceptions.RequestException as e:
             rprint(f"⚠️ [yellow]Network error, retrying: {e}[/yellow]")
