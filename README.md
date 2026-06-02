@@ -11,14 +11,13 @@ Inspired by [Spotlight-Downloader](https://github.com/ORelio/Spotlight-Downloade
 - List available Spotlight image URLs
 - Download Spotlight images in 1080p or 4K resolution
 - Filter by locale and orientation
-- Embed EXIF metadata with `exiftool`
+- Embed EXIF metadata with Pillow
 - Avoid duplicate downloads with perceptual hash and URL checks
 - Automatic throttling to avoid rate limits
 
 ## 📦 Requirements
 
 - Python 3.10 or higher ([Download Python](https://www.python.org/downloads/))
-- [`exiftool`](https://exiftool.org/) (optional, required for `--embed-exif`)
 
 ## ⚖️ Installation
 
@@ -106,8 +105,7 @@ pyspotlightarchiver download --single|--multiple [options]
 | `--locale`        | Locale code (e.g., `en-us`). Default: `en-us`.                              |
 | `--orientation`   | Image orientation: `landscape`, `portrait`, or `both`. Default: `landscape`. |
 | `--save-dir`      | Directory to save downloaded images. Default: `downloaded_spotlight`.       |
-| `--embed-exif`    | Embed EXIF metadata using `exiftool`.                                       |
-| `--exiftool-path` | Path to `exiftool`. Required if not in system `PATH`.                       |
+| `--embed-exif`    | Embed EXIF metadata.                                                        |
 | `--verbose`       | Show detailed logs.                                                         |
 
 ## 📌 Notes
