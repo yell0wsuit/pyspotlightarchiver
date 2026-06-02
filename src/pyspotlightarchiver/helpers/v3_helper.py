@@ -42,8 +42,8 @@ def v3_helper(use_local=False, orientation="landscape", locale="en-us", verbose=
             data = json.load(f)
     else:
         url = (
-            f"https://fd.api.iris.microsoft.com/v3/Delivery/Placement?"
-            f"&pid=338387&fmt=json"
+            f"https://arc.msn.com/v3/Delivery/Placement?"
+            f"pid=338387&fmt=json&lo=80217"
             f"&ctry={country}"
             f"&lc={locale}"
             f"&ua=WindowsShellClient%2F9.0.40929.0%20%28Windows%29"

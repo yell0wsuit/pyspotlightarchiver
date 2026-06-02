@@ -45,7 +45,7 @@ def v4_helper(use_local=False, orientation="landscape", locale="en-us", verbose=
     else:
         url = (
             f"https://fd.api.iris.microsoft.com/v4/api/selection?"
-            f"&placement=88000820"
+            f"placement=88000820"
             f"&bcnt=4"
             f"&country={country}"
             f"&locale={locale}"
