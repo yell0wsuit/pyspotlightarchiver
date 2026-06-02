@@ -33,6 +33,14 @@ def _encode_xp_comment(comment):
     return comment.encode("utf-16le") + b"\x00\x00"
 
 
+def _encode_ascii_tag_text(text):
+    try:
+        text.encode("ascii")
+        return text
+    except UnicodeEncodeError:
+        return text.encode("latin-1", errors="replace")
+
+
 def set_exif_metadata(
     image_path,
     title=None,
@@ -53,7 +61,7 @@ def set_exif_metadata(
                 if verbose:
                     rprint(f"ℹ️ [gray]LOG: [pillow] Title:[/gray] {title}")
             if copyright_text:
-                exif[COPYRIGHT] = copyright_text
+                exif[COPYRIGHT] = _encode_ascii_tag_text(copyright_text)
                 if verbose:
                     rprint(f"ℹ️ [gray]LOG: [pillow] Copyright:[/gray] {copyright_text}")
             if comment:
