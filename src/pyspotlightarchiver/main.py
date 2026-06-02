@@ -115,11 +115,6 @@ def main():
         action="store_true",
         help="Embed EXIF metadata in the images. Default: false",
     )
-    download_parser.add_argument(
-        "--exiftool-path",
-        type=str,
-        help="Path to the exiftool executable. Default: using the PATH environment variable",
-    )
 
     args = parser.parse_args()
 
@@ -142,7 +137,6 @@ def main():
                 args.verbose,
                 args.save_dir,
                 args.embed_exif,
-                args.exiftool_path,
             )
         elif args.multiple:
             init_db(args.save_dir)
@@ -153,7 +147,6 @@ def main():
                 args.verbose,
                 args.save_dir,
                 args.embed_exif,
-                args.exiftool_path,
             )
     else:
         parser.print_help()
